@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1d9e75">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="The Pet Den">
+<title>The Pet Den — Staff Dashboard</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --teal-50:#e1f5ee; --teal-100:#9fe1cb; --teal-200:#5dcaa5;
+    --teal-400:#1d9e75; --teal-600:#0f6e56; --teal-800:#085041;
+    --green-50:#eaf3de; --green-600:#3b6d11;
+    --gray-50:#f7f9f8; --gray-100:#e8edea; --gray-200:#cdd5d0;
+    --gray-400:#8a9990; --gray-600:#4f6058; --gray-800:#2a3830;
+    --coral-50:#faece7; --coral-200:#f0997b; --coral-600:#993c1d;
+    --amber-50:#fffbeb; --amber-400:#f59e0b; --amber-600:#d97706;
+    --white:#ffffff;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+    --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+    --r-sm:6px; --r-md:10px; --r-lg:16px;
+  }
+  body { font-family:'DM Sans',sans-serif; background:#f0f6f3; color:var(--gray-800); min-height:100vh; overflow-x:hidden; }
+
+  /* DARK MODE */
+  body.dark {
+    --teal-50:#0a2e22; --teal-100:#0f4a36; --teal-200:#1a6b4e;
+    --gray-50:#1a2420; --gray-100:#243028; --gray-200:#2e3d36;
+    --gray-400:#6b8878; --gray-600:#8aaa98; --gray-800:#d4e8de;
+    --white:#111e18; background:#0d1a14;
+  }
+  body.dark .header { background:#111e18; border-color:#243028; }
+  body.dark .cal-sec { background:#111e18; border-color:#243028; }
+  body.dark .tl-sidebar { background:#111e18; border-color:#243028; }
+  body.dark .q-sidebar { background:#111e18; border-color:#243028; }
+  body.dark .slot { background:#1a2420; }
+  body.dark .q-card { background:#1a2420; border-color:#243028; }
+  body.dark .modal { background:#111e18; }
+  body.dark input, body.dark select, body.dark textarea { background:#1a2420; color:#d4e8de; border-color:#2e3d36; }
+  body.dark .stats-bar { background:#111e18; border-color:#243028; }
+  body.dark .stat-card { background:#1a2420; border-color:#243028; }
+  body.dark .analytics-bar { background:#111e18; border-color:#243028; }
+  body.dark .analytics-card { background:#1a2420; border-color:#243028; }
+  body.dark .chat-window { background:#111e18; border-color:#243028; }
+  body.dark .chat-input-area { background:#111e18; border-color:#243028; }
+  body.dark .chat-msg-input { background:#1a2420; color:#d4e8de; border-color:#2e3d36; }
+  body.dark .conv-item { background:#1a2420; border-color:#243028; }
+  body.dark .conv-item:hover { background:#243028; }
+  body.dark .conv-item.active { background:#0f4a36; }
+  body.dark .notif-panel { background:#111e18; border-color:#243028; }
+  body.dark .notif-item { border-color:#243028; }
+
+  /* LOADING */
+  #loadingScreen { position:fixed; inset:0; background:#f0f6f3; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:16px; }
+  .load-icon { font-size:40px; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.95)} }
+  .load-txt { font-size:14px; color:var(--gray-400); font-weight:500; }
+  .load-bar { width:200px; height:3px; background:var(--gray-100); border-radius:4px; overflow:hidden; }
+  .load-fill { height:100%; background:var(--teal-400); border-radius:4px; animation:lfill 1.2s ease-in-out infinite; }
+  @keyframes lfill { 0%{width:0%;margin-left:0} 50%{width:60%;margin-left:20%} 100%{width:0%;margin-left:100%} }
+
+  /* HEADER */
+  .header { background:var(--white); border-bottom:1px solid var(--gray-100); padding:0 24px; height:64px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-icon { width:36px; height:36px; background:var(--teal-400); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .logo-text { font-family:'DM Serif Display',serif; font-size:20px; color:var(--teal-600); }
+  .logo-sub { font-size:11px; color:var(--gray-400); letter-spacing:1.5px; text-transform:uppercase; margin-top:1px; }
+  .hdr-right { display:flex; align-items:center; gap:8px; }
+  .clock { background:var(--teal-50); color:var(--teal-600); padding:6px 12px; border-radius:20px; font-size:12px; font-weight:500; border:1px solid var(--teal-100); }
+  .logout-btn { padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid var(--coral-200); background:var(--coral-50); color:var(--coral-600); cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; }
+  .logout-btn:hover { background:var(--coral-200); color:#fff; }
+  .dark-toggle { width:36px; height:20px; background:var(--gray-200); border-radius:10px; cursor:pointer; position:relative; transition:background .2s; border:none; flex-shrink:0; }
+  .dark-toggle.on { background:var(--teal-400); }
+  .dark-toggle::after { content:''; position:absolute; width:14px; height:14px; background:white; border-radius:50%; top:3px; left:3px; transition:left .2s; }
+  .dark-toggle.on::after { left:19px; }
+  .print-btn { padding:6px 12px; border-radius:var(--r-sm); border:1px solid var(--gray-200); background:transparent; color:var(--gray-600); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; transition:all .15s; }
+  .print-btn:hover { background:var(--gray-50); }
+  .notif-btn { position:relative; width:34px; height:34px; border-radius:10px; border:1px solid var(--gray-200); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .15s; }
+  .notif-btn:hover { background:var(--gray-50); }
+  .notif-badge { position:absolute; top:-4px; right:-4px; background:var(--coral-600); color:#fff; font-size:9px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; display:none; }
+  .notif-badge.show { display:flex; }
+
+  /* STATS BAR */
+  .stats-bar { background:var(--white); border-bottom:1px solid var(--gray-100); padding:12px 24px; display:flex; gap:10px; align-items:center; }
+  .stat-card { background:var(--gray-50); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:10px 14px; display:flex; align-items:center; gap:10px; flex:1; }
+  .stat-icon { font-size:16px; }
+  .stat-val { font-size:18px; font-weight:700; color:var(--teal-600); line-height:1; }
+  .stat-lbl { font-size:10px; color:var(--gray-400); text-transform:uppercase; letter-spacing:.8px; margin-top:2px; }
+
+  /* ANALYTICS BAR */
+  .analytics-bar { background:var(--white); border-bottom:1px solid var(--gray-100); padding:16px 24px; display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .analytics-card { background:var(--gray-50); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:14px 16px; }
+  .analytics-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--gray-400); margin-bottom:10px; }
+  .analytics-chart-wrap { height:80px; position:relative; }
+  .analytics-mini-stats { display:flex; gap:12px; flex-wrap:wrap; }
+  .mini-stat { display:flex; flex-direction:column; }
+  .mini-stat-val { font-size:20px; font-weight:700; color:var(--teal-600); }
+  .mini-stat-lbl { font-size:10px; color:var(--gray-400); text-transform:uppercase; letter-spacing:.5px; }
+  .animal-bars { display:flex; flex-direction:column; gap:5px; }
+  .animal-bar-row { display:flex; align-items:center; gap:6px; font-size:11px; }
+  .animal-bar-label { width:60px; color:var(--gray-600); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
+  .animal-bar-track { flex:1; height:6px; background:var(--gray-100); border-radius:3px; overflow:hidden; }
+  .animal-bar-fill { height:100%; background:var(--teal-400); border-radius:3px; transition:width .4s; }
+  .animal-bar-count { font-size:10px; color:var(--gray-400); width:16px; text-align:right; }
+  .cancel-rate { font-size:28px; font-weight:700; color:var(--coral-600); }
+  .cancel-rate-lbl { font-size:11px; color:var(--gray-400); margin-top:2px; }
+
+  /* MAIN LAYOUT */
+  .main { display:grid; grid-template-columns:200px 1fr 280px; height:calc(100vh - 64px - 56px - 120px); }
+
+  /* TIMELINE SIDEBAR */
+  .tl-sidebar { background:var(--white); border-right:1px solid var(--gray-100); padding:24px 0; overflow-y:auto; }
+  .sbar-title { font-size:11px; font-weight:600; letter-spacing:1.4px; text-transform:uppercase; color:var(--gray-400); padding:0 20px 16px; }
+  .timeline { position:relative; padding:0 20px; }
+  .timeline::before { content:''; position:absolute; left:32px; top:8px; bottom:8px; width:1px; background:var(--gray-100); }
+  .tl-item { display:flex; align-items:flex-start; gap:12px; margin-bottom:20px; cursor:pointer; transition:opacity .2s; }
+  .tl-item:hover { opacity:.7; }
+  .tl-dot { width:12px; height:12px; border-radius:50%; background:var(--teal-200); border:2px solid var(--white); box-shadow:0 0 0 2px var(--teal-100); flex-shrink:0; margin-top:3px; position:relative; z-index:1; }
+  .tl-dot.next { background:var(--teal-400); box-shadow:0 0 0 2px var(--teal-200); }
+  .tl-time { font-size:11px; color:var(--gray-400); font-weight:500; }
+  .tl-pet { font-size:13px; color:var(--gray-800); font-weight:500; margin-top:1px; }
+  .tl-own { font-size:11px; color:var(--gray-400); }
+  .sbar-empty { text-align:center; padding:40px 20px; color:var(--gray-400); font-size:13px; line-height:1.7; }
+
+  /* CENTER */
+  .center { display:flex; flex-direction:column; overflow:hidden; }
+  .cal-sec { background:var(--white); border-bottom:1px solid var(--gray-100); padding:24px 28px 20px; }
+  .sec-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .sec-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--gray-800); }
+  .nav-btns { display:flex; gap:6px; }
+  .nav-btn { width:30px; height:30px; border-radius:8px; border:1px solid var(--gray-200); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--gray-600); font-size:14px; transition:background .15s; }
+  .nav-btn:hover { background:var(--gray-50); }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+  .cal-hdr { text-align:center; font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--gray-400); padding-bottom:8px; }
+  .cal-day { background:var(--gray-50); border:1.5px solid transparent; border-radius:var(--r-md); padding:14px 8px; text-align:center; cursor:pointer; transition:all .15s; min-height:80px; }
+  .cal-day:hover:not(.past) { background:var(--teal-50); border-color:var(--teal-100); }
+  .cal-day.selected { background:var(--teal-50); border-color:var(--teal-400); }
+  .cal-day.today { border:3px solid var(--teal-400); background:var(--teal-50); }
+  .cal-day.past { opacity:.4; cursor:not-allowed; pointer-events:none; }
+  .day-n { font-size:22px; font-weight:700; color:var(--gray-800); }
+  .cal-day.today .day-n { color:var(--teal-600); }
+  .day-dot { font-size:10px; color:var(--teal-400); margin-top:3px; font-weight:500; }
+  .today-lbl { font-size:9px; background:var(--teal-400); color:#fff; padding:1px 5px; border-radius:4px; margin-top:2px; display:inline-block; letter-spacing:.5px; text-transform:uppercase; font-weight:600; }
+
+  /* SLOTS */
+  .slots-sec { flex:1; overflow-y:auto; padding:18px 22px; }
+  .slots-lbl { font-size:13px; color:var(--gray-400); margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
+  .slots-lbl strong { color:var(--gray-800); }
+  .walkin-btn { padding:5px 12px; background:var(--teal-400); color:#fff; border:none; border-radius:var(--r-sm); font-size:11px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .15s; }
+  .walkin-btn:hover { background:var(--teal-600); }
+  .slots-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .slot { padding:0; border:1.5px solid var(--gray-200); border-radius:var(--r-md); background:var(--white); cursor:pointer; text-align:center; transition:all .15s; height:70px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
+  .slot:hover:not(.booked):not(.past) { border-color:var(--teal-400); background:var(--teal-50); transform:translateY(-1px); }
+  .slot-t { font-size:13px; font-weight:600; color:var(--gray-800); }
+  .slot-s { font-size:10px; color:var(--gray-400); margin-top:2px; }
+  .slot-chip { display:inline-block; background:var(--teal-400); color:#fff; font-size:9px; padding:2px 8px; border-radius:10px; margin-top:3px; font-weight:600; max-width:90%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .slot.booked { background:var(--teal-100); border-color:var(--teal-200); box-shadow:inset 2px 2px 6px rgba(0,0,0,0.15); transform:scale(0.98); cursor:pointer; }
+  .slot.booked .slot-t { color:var(--teal-600); }
+  .slot.booked .slot-s { color:var(--teal-400); }
+  .slot.past { background:var(--gray-100); border-color:var(--gray-200); box-shadow:inset 2px 2px 6px rgba(0,0,0,0.12); cursor:not-allowed; opacity:.55; pointer-events:none; transform:scale(0.98); }
+  .slot.confirmed { background:#eaf3de; border-color:#3b6d11; }
+  .slot.confirmed .slot-t { color:#3b6d11; }
+  .slot.confirmed .slot-chip { background:#3b6d11; }
+  .slot.completed { background:var(--gray-100); border-color:var(--gray-200); }
+  .slot.completed .slot-t { color:var(--gray-600); }
+  .slot.completed .slot-s { color:var(--gray-400); }
+  .slot.completed .slot-chip { background:var(--gray-400); }
+
+  /* QUEUE SIDEBAR */
+  .q-sidebar { background:var(--white); border-left:1px solid var(--gray-100); display:flex; flex-direction:column; overflow:hidden; }
+  .q-head { padding:16px 16px 12px; border-bottom:1px solid var(--gray-100); }
+  .q-title { font-family:'DM Serif Display',serif; font-size:16px; color:var(--gray-800); }
+  .q-sub { font-size:12px; color:var(--gray-400); margin-top:2px; }
+  .q-count { display:inline-flex; align-items:center; background:var(--teal-50); color:var(--teal-600); border-radius:20px; padding:2px 10px; font-size:12px; font-weight:600; border:1px solid var(--teal-100); margin-top:6px; }
+  .q-list { flex:1; overflow-y:auto; padding:10px 12px; }
+  .q-card { background:var(--gray-50); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:10px 12px; margin-bottom:8px; cursor:pointer; transition:all .15s; }
+  .q-card:hover { border-color:var(--teal-200); background:var(--teal-50); }
+  .qc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .qc-time { font-size:11px; font-weight:600; color:var(--teal-600); background:var(--teal-50); padding:2px 6px; border-radius:6px; border:1px solid var(--teal-100); }
+  .qc-status { font-size:9px; font-weight:600; padding:2px 6px; border-radius:10px; }
+  .qc-status.pending { background:var(--amber-50); color:var(--amber-600); border:1px solid var(--amber-400); }
+  .qc-status.confirmed { background:var(--green-50); color:var(--green-600); border:1px solid #c0dd97; }
+  .qc-status.completed { background:var(--gray-100); color:var(--gray-600); border:1px solid var(--gray-200); }
+  .qc-x { width:20px; height:20px; border-radius:50%; border:none; background:transparent; color:var(--gray-400); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .qc-x:hover { background:var(--coral-50); color:var(--coral-600); }
+  .qc-pet { font-size:13px; font-weight:600; color:var(--gray-800); }
+  .qc-own { font-size:11px; color:var(--gray-400); margin-top:1px; }
+  .qc-type { display:inline-block; font-size:10px; background:var(--green-50); color:var(--green-600); padding:2px 6px; border-radius:4px; margin-top:4px; font-weight:500; }
+  .q-empty { padding:30px 12px; text-align:center; color:var(--gray-400); font-size:13px; line-height:1.8; }
+  .search-wrap { position:relative; padding:10px 12px 4px; }
+  .search-icon { position:absolute; left:20px; top:50%; transform:translateY(-50%); color:var(--gray-400); font-size:12px; pointer-events:none; }
+  .search-input { width:100%; padding:7px 10px 7px 28px; border:1.5px solid var(--gray-200); border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:12px; color:var(--gray-800); background:var(--gray-50); outline:none; transition:border-color .15s; }
+  .search-input:focus { border-color:var(--teal-400); background:var(--white); }
+
+  /* MODALS */
+  .overlay { position:fixed; inset:0; background:rgba(10,28,22,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:999; opacity:0; pointer-events:none; transition:opacity .2s; padding:20px; }
+  .overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--white); border-radius:var(--r-lg); padding:28px; width:440px; max-width:100%; box-shadow:var(--shadow-lg); transform:translateY(12px) scale(.98); transition:transform .2s; max-height:90vh; overflow-y:auto; }
+  .overlay.open .modal { transform:translateY(0) scale(1); }
+  .m-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; }
+  .m-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--gray-800); }
+  .m-badge { background:var(--teal-50); color:var(--teal-600); padding:4px 12px; border-radius:8px; font-size:13px; font-weight:600; border:1px solid var(--teal-100); margin-top:4px; display:inline-block; }
+  .m-x { width:30px; height:30px; border-radius:8px; border:1px solid var(--gray-200); background:transparent; cursor:pointer; color:var(--gray-400); font-size:16px; display:flex; align-items:center; justify-content:center; }
+  .m-x:hover { background:var(--gray-50); }
+  .frow { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .fg { margin-bottom:14px; }
+  label { display:block; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--gray-600); margin-bottom:6px; }
+  input, select, textarea { width:100%; padding:10px 14px; border:1.5px solid var(--gray-200); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--gray-800); background:var(--white); outline:none; transition:border-color .15s; appearance:none; }
+  input:focus, select:focus, textarea:focus { border-color:var(--teal-400); }
+  textarea { resize:vertical; min-height:72px; }
+  .btn-ok { width:100%; padding:11px; background:var(--teal-400); color:#fff; border:none; border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background .15s; margin-top:6px; }
+  .btn-ok:hover { background:var(--teal-600); }
+  .btn-ok:disabled { background:var(--gray-200); cursor:not-allowed; }
+  .btn-outline-coral { width:100%; padding:10px; background:transparent; border:1.5px solid var(--coral-200); color:var(--coral-600); border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; margin-top:10px; transition:all .15s; }
+  .btn-outline-coral:hover { background:var(--coral-50); }
+  .btn-row { display:flex; gap:8px; margin-top:10px; }
+  .btn-row .btn-ok { margin-top:0; }
+  .d-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }
+  .df { margin-bottom:12px; }
+  .dl { font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--gray-400); font-weight:600; margin-bottom:3px; }
+  .dv { font-size:14px; color:var(--gray-800); font-weight:500; }
+  .status-select { padding:6px 12px; border:1.5px solid var(--gray-200); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; background:var(--white); color:var(--gray-800); width:auto; appearance:none; }
+  .notes-area { width:100%; padding:8px 12px; border:1.5px solid var(--gray-200); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:13px; color:var(--gray-800); background:var(--white); outline:none; resize:vertical; min-height:60px; transition:border-color .15s; }
+  .notes-area:focus { border-color:var(--teal-400); }
+
+  /* CHAT BUBBLE */
+  .chat-bubble { position:fixed; bottom:24px; right:24px; width:52px; height:52px; background:var(--teal-400); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; box-shadow:0 4px 20px rgba(29,158,117,.4); z-index:500; transition:all .2s; border:none; }
+  .chat-bubble:hover { background:var(--teal-600); transform:scale(1.08); }
+  .chat-unread { position:absolute; top:-4px; right:-4px; background:var(--coral-600); color:#fff; font-size:9px; font-weight:700; width:18px; height:18px; border-radius:50%; display:none; align-items:center; justify-content:center; }
+  .chat-unread.show { display:flex; }
+
+  /* CHAT WINDOW */
+  .chat-window { position:fixed; bottom:88px; right:24px; width:360px; height:500px; background:var(--white); border-radius:var(--r-lg); box-shadow:var(--shadow-lg); border:1px solid var(--gray-100); z-index:499; display:none; flex-direction:column; overflow:hidden; }
+  .chat-window.open { display:flex; }
+  .chat-header { padding:14px 16px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; justify-content:space-between; }
+  .chat-header-title { font-family:'DM Serif Display',serif; font-size:16px; color:var(--gray-800); }
+  .chat-header-sub { font-size:11px; color:var(--gray-400); margin-top:1px; }
+  .chat-tabs { display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid var(--gray-100); }
+  .chat-tab { flex:1; padding:5px; text-align:center; font-size:11px; font-weight:600; color:var(--gray-400); cursor:pointer; border-radius:6px; transition:all .2s; border:none; background:transparent; font-family:'DM Sans',sans-serif; }
+  .chat-tab.active { background:var(--teal-400); color:#fff; }
+  .chat-panel { display:none; flex:1; flex-direction:column; overflow:hidden; }
+  .chat-panel.active { display:flex; }
+
+  /* CONVERSATIONS LIST */
+  .conv-list { flex:1; overflow-y:auto; padding:8px; }
+  .conv-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--r-md); cursor:pointer; border:1px solid transparent; transition:all .15s; margin-bottom:4px; }
+  .conv-item:hover { background:var(--gray-50); border-color:var(--gray-100); }
+  .conv-item.active { background:var(--teal-50); border-color:var(--teal-100); }
+  .conv-avatar { width:36px; height:36px; border-radius:50%; background:var(--teal-100); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .conv-name { font-size:13px; font-weight:600; color:var(--gray-800); }
+  .conv-preview { font-size:11px; color:var(--gray-400); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+  .conv-time { font-size:10px; color:var(--gray-400); flex-shrink:0; }
+  .conv-unread { background:var(--teal-400); color:#fff; font-size:9px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  /* MESSAGES VIEW */
+  .msgs-header { padding:10px 14px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; gap:8px; }
+  .msgs-back { background:none; border:none; cursor:pointer; color:var(--teal-600); font-size:16px; padding:2px 6px; }
+  .msgs-name { font-size:14px; font-weight:600; color:var(--gray-800); }
+  .msgs-list { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .msg-bubble { max-width:80%; padding:8px 12px; border-radius:12px; font-size:13px; line-height:1.5; }
+  .msg-bubble.sent { background:var(--teal-400); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+  .msg-bubble.recv { background:var(--gray-100); color:var(--gray-800); align-self:flex-start; border-bottom-left-radius:4px; }
+  .msg-time { font-size:10px; opacity:.7; margin-top:3px; }
+  .chat-input-area { padding:10px 12px; border-top:1px solid var(--gray-100); display:flex; gap:8px; align-items:flex-end; }
+  .chat-msg-input { flex:1; padding:8px 12px; border:1.5px solid var(--gray-200); border-radius:20px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--gray-800); background:var(--white); outline:none; resize:none; max-height:80px; transition:border-color .15s; }
+  .chat-msg-input:focus { border-color:var(--teal-400); }
+  .chat-send-btn { width:36px; height:36px; background:var(--teal-400); border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:background .15s; flex-shrink:0; }
+  .chat-send-btn:hover { background:var(--teal-600); }
+
+  /* ANNOUNCEMENT */
+  .announce-panel { padding:12px; flex:1; overflow-y:auto; }
+  .announce-txt { font-size:12px; color:var(--gray-400); margin-bottom:10px; line-height:1.6; }
+  .announce-history { margin-top:14px; }
+  .announce-item { background:var(--gray-50); border:1px solid var(--gray-100); border-radius:var(--r-md); padding:10px 12px; margin-bottom:8px; }
+  .announce-item-msg { font-size:13px; color:var(--gray-800); line-height:1.5; }
+  .announce-item-time { font-size:10px; color:var(--gray-400); margin-top:4px; }
+
+  /* NOTIFICATION PANEL */
+  .notif-panel { position:fixed; top:72px; right:24px; width:300px; background:var(--white); border:1px solid var(--gray-100); border-radius:var(--r-lg); box-shadow:var(--shadow-lg); z-index:498; display:none; max-height:400px; overflow-y:auto; }
+  .notif-panel.open { display:block; }
+  .notif-panel-head { padding:14px 16px 10px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; justify-content:space-between; }
+  .notif-panel-title { font-size:14px; font-weight:600; color:var(--gray-800); }
+  .notif-clear { font-size:11px; color:var(--teal-600); cursor:pointer; background:none; border:none; font-family:'DM Sans',sans-serif; font-weight:600; }
+  .notif-item { padding:12px 16px; border-bottom:1px solid var(--gray-100); }
+  .notif-item:last-child { border-bottom:none; }
+  .notif-item-title { font-size:13px; font-weight:600; color:var(--gray-800); }
+  .notif-item-body { font-size:12px; color:var(--gray-400); margin-top:2px; line-height:1.5; }
+  .notif-item-time { font-size:10px; color:var(--gray-400); margin-top:4px; }
+  .notif-empty { padding:24px; text-align:center; font-size:13px; color:var(--gray-400); }
+
+  /* REMINDER POPUP */
+  .reminder-popup { position:fixed; top:80px; right:20px; background:var(--white); border:1.5px solid var(--teal-200); border-radius:var(--r-lg); padding:16px 18px; box-shadow:var(--shadow-lg); z-index:9000; max-width:280px; transform:translateX(320px); transition:transform .3s; }
+  .reminder-popup.show { transform:translateX(0); }
+  .reminder-title { font-size:13px; font-weight:600; color:var(--teal-600); margin-bottom:4px; }
+  .reminder-txt { font-size:12px; color:var(--gray-600); line-height:1.5; }
+  .reminder-close { position:absolute; top:8px; right:10px; background:none; border:none; cursor:pointer; color:var(--gray-400); font-size:14px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--gray-800); color:#fff; padding:10px 20px; border-radius:24px; font-size:13px; font-weight:500; opacity:0; transition:all .3s; z-index:9999; white-space:nowrap; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-thumb { background:var(--gray-200); border-radius:10px; }
+
+  @media print {
+    .header, .tl-sidebar, .cal-sec, .slots-sec, .analytics-bar,
+    .overlay, .toast, .reminder-popup, .stats-bar, .search-wrap,
+    .qc-x, .print-btn, .logout-btn, .dark-toggle, .chat-bubble,
+    .chat-window, .notif-panel { display:none !important; }
+    body { background:white !important; }
+    .main { display:block !important; }
+    .q-sidebar { display:block !important; width:100% !important; border:none !important; height:auto !important; overflow:visible !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+  <div class="load-icon">🐾</div>
+  <div style="font-size:14px;color:var(--gray-400);font-weight:500;">Loading The Pet Den…</div>
+  <div style="font-size:12px;color:var(--gray-400)" id="loadSub">Connecting to Firebase</div>
+  <div class="load-bar"><div class="load-fill"></div></div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">🐾</div>
+    <div>
+      <div class="logo-text">The Pet Den</div>
+      <div class="logo-sub">Staff Dashboard</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="notif-btn" onclick="toggleNotifPanel()" title="Notifications">
+      🔔
+      <div class="notif-badge" id="notifBadge"></div>
+    </button>
+    <span style="font-size:11px;color:var(--gray-400)">🌙</span>
+    <button class="dark-toggle" id="darkToggle" onclick="toggleDark()"></button>
+    <button class="print-btn" onclick="printSchedule()">🖨️ Print</button>
+    <div class="clock" id="clock">--:-- --</div>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+</header>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-icon">📅</div><div><div class="stat-val" id="statToday">0</div><div class="stat-lbl">Today</div></div></div>
+  <div class="stat-card"><div class="stat-icon">📆</div><div><div class="stat-val" id="statWeek">0</div><div class="stat-lbl">This Week</div></div></div>
+  <div class="stat-card"><div class="stat-icon">🐾</div><div><div class="stat-val" id="statCommon">—</div><div class="stat-lbl">Top Animal</div></div></div>
+  <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-val" id="statTotal">0</div><div class="stat-lbl">Total</div></div></div>
+</div>
+
+<!-- ANALYTICS BAR -->
+<div class="analytics-bar">
+  <div class="analytics-card">
+    <div class="analytics-title">📊 Appointments</div>
+    <div class="analytics-mini-stats">
+      <div class="mini-stat"><div class="mini-stat-val" id="aDay">0</div><div class="mini-stat-lbl">Today</div></div>
+      <div class="mini-stat"><div class="mini-stat-val" id="aWeek">0</div><div class="mini-stat-lbl">Week</div></div>
+      <div class="mini-stat"><div class="mini-stat-val" id="aMonth">0</div><div class="mini-stat-lbl">Month</div></div>
+    </div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">⏰ Peak Hours</div>
+    <div class="analytics-chart-wrap"><canvas id="peakChart"></canvas></div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">🐾 Animal Types</div>
+    <div class="animal-bars" id="animalBars"></div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">❌ Cancellation Rate</div>
+    <div class="cancel-rate" id="cancelRate">0%</div>
+    <div class="cancel-rate-lbl" id="cancelLbl">0 cancelled of 0 total</div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main">
+  <aside class="tl-sidebar">
+    <div class="sbar-title">Patient Timeline</div>
+    <div class="timeline" id="timeline"><div class="sbar-empty">No patients<br>scheduled yet.</div></div>
+  </aside>
+  <main class="center">
+    <section class="cal-sec">
+      <div class="sec-hdr">
+        <div class="sec-title" id="calLabel">—</div>
+        <div class="nav-btns">
+          <button class="nav-btn" onclick="shiftWeek(-1)">&#8249;</button>
+          <button class="nav-btn" onclick="shiftWeek(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </section>
+    <section class="slots-sec">
+      <div class="slots-lbl">
+        <span id="slotsLbl">Select a date to view slots</span>
+        <button class="walkin-btn" onclick="openWalkIn()">+ Walk-in</button>
+      </div>
+      <div class="slots-grid" id="slotsGrid"></div>
+    </section>
+  </main>
+  <aside class="q-sidebar">
+    <div class="q-head">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="q-title">Today's Queue</div>
+        <button class="print-btn" onclick="printSchedule()">🖨️</button>
+      </div>
+      <div class="q-sub" id="qSub">—</div>
+      <div class="q-count"><span id="qCount">0</span>&nbsp;appointments</div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Search patient..." oninput="filterQueue(this.value)"/>
+    </div>
+    <div class="q-list" id="qList">
+      <div class="q-empty">No appointments booked.</div>
+    </div>
+  </aside>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="overlay" id="bookModal">
+  <div class="modal">
+    <div class="m-head">
+      <div><div class="m-title">New Appointment</div><div class="m-badge" id="bLabel">—</div></div>
+      <button class="m-x" onclick="closeOverlay('bookModal')">✕</button>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Owner Name</label><input id="fOwner" placeholder="e.g. Maria Santos" type="text"/></div>
+      <div class="fg"><label>Pet Name</label><input id="fPet" placeholder="e.g. Mochi" type="text"/></div>
+    </div>
+    <div class="fg">
+      <label>Animal Type</label>
+      <select id="fAnimal">
+        <option value="">Select animal…</option>
+        <option>🐕 Dog</option><option>🐈 Cat</option><option>🐇 Rabbit</option>
+        <option>🐹 Hamster</option><option>🦜 Bird / Parrot</option>
+        <option>🐢 Reptile</option><option>🐟 Fish</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Reason for Visit</label><textarea id="fReason" placeholder="Vaccination, check-up, illness, grooming…"></textarea></div>
+    <div class="fg">
+      <label>Status</label>
+      <select id="fStatus">
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+      </select>
+    </div>
+    <button class="btn-ok" id="confirmBtn" onclick="confirmBooking()">Confirm Appointment</button>
+  </div>
+</div>
+
+<!-- WALK-IN MODAL -->
+<div class="overlay" id="walkInModal">
+  <div class="modal">
+    <div class="m-head">
+      <div><div class="m-title">Walk-in Booking</div><div class="m-badge">No account needed</div></div>
+      <button class="m-x" onclick="closeOverlay('walkInModal')">✕</button>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Owner Name</label><input id="wiOwner" placeholder="e.g. Maria Santos" type="text"/></div>
+      <div class="fg"><label>Pet Name</label><input id="wiPet" placeholder="e.g. Mochi" type="text"/></div>
+    </div>
+    <div class="fg">
+      <label>Animal Type</label>
+      <select id="wiAnimal">
+        <option value="">Select animal…</option>
+        <option>🐕 Dog</option><option>🐈 Cat</option><option>🐇 Rabbit</option>
+        <option>🐹 Hamster</option><option>🦜 Bird / Parrot</option>
+        <option>🐢 Reptile</option><option>🐟 Fish</option><option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Reason for Visit</label><textarea id="wiReason" placeholder="Vaccination, check-up, illness, grooming…"></textarea></div>
+    <div class="fg">
+      <label>Time Slot</label>
+      <select id="wiSlot"><option value="">Select time…</option></select>
+    </div>
+    <button class="btn-ok" id="wiBtn" onclick="confirmWalkIn()">Book Walk-in</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detailModal">
+  <div class="modal">
+    <div class="m-head">
+      <div><div class="m-title">Appointment Details</div><div class="m-badge" id="dLabel">—</div></div>
+      <button class="m-x" onclick="closeOverlay('detailModal')">✕</button>
+    </div>
+    <div class="d-grid">
+      <div class="df"><div class="dl">Pet Name</div><div class="dv" id="dPet"></div></div>
+      <div class="df"><div class="dl">Owner</div><div class="dv" id="dOwner"></div></div>
+      <div class="df"><div class="dl">Animal Type</div><div class="dv" id="dAnimal"></div></div>
+      <div class="df"><div class="dl">Date & Time</div><div class="dv" id="dDate"></div></div>
+    </div>
+    <div class="df"><div class="dl">Reason for Visit</div><div class="dv" id="dReason"></div></div>
+    <div class="df" style="margin-top:8px">
+      <div class="dl">Status</div>
+      <select class="status-select" id="dStatus" onchange="updateStatus(this.value)">
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="df" style="margin-top:8px">
+      <div class="dl">Staff Notes</div>
+      <textarea class="notes-area" id="dNotes" placeholder="Add notes about this appointment…"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-ok" style="background:var(--teal-600)" onclick="saveNotes()">💾 Save Notes</button>
+      <button class="btn-ok" style="background:var(--gray-600)" onclick="openRescheduleFromDetail()">📅 Reschedule</button>
+    </div>
+    <button class="btn-outline-coral" id="cancelBtn" onclick="cancelFromDetail()">Cancel Appointment</button>
+    <div id="pastNote" style="display:none;margin-top:12px;padding:10px;background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);text-align:center;font-size:12px;color:var(--gray-400);">✓ This appointment has already taken place.</div>
+  </div>
+</div>
+
+<!-- RESCHEDULE MODAL -->
+<div class="overlay" id="rescheduleModal">
+  <div class="modal">
+    <div class="m-head">
+      <div><div class="m-title">Reschedule</div><div class="m-badge" id="rsLabel">—</div></div>
+      <button class="m-x" onclick="closeOverlay('rescheduleModal')">✕</button>
+    </div>
+    <div class="fg"><label>New Date</label><input type="date" id="rsDate"/></div>
+    <div class="fg">
+      <label>New Time Slot</label>
+      <select id="rsSlot"><option value="">Select time…</option></select>
+    </div>
+    <button class="btn-ok" onclick="confirmReschedule()">Confirm Reschedule</button>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-head">
+    <div class="notif-panel-title">🔔 Notifications</div>
+    <button class="notif-clear" onclick="clearNotifs()">Clear all</button>
+  </div>
+  <div id="notifList"><div class="notif-empty">No new notifications</div></div>
+</div>
+
+<!-- REMINDER POPUP -->
+<div class="reminder-popup" id="reminderPopup">
+  <button class="reminder-close" onclick="document.getElementById('reminderPopup').classList.remove('show')">✕</button>
+  <div class="reminder-title">⏰ Upcoming Appointment</div>
+  <div class="reminder-txt" id="reminderTxt">—</div>
+</div>
+
+<!-- CHAT BUBBLE -->
+<button class="chat-bubble" onclick="toggleChat()">
+  💬
+  <div class="chat-unread" id="chatUnread"></div>
+</button>
+
+<!-- CHAT WINDOW -->
+<div class="chat-window" id="chatWindow">
+  <div class="chat-header">
+    <div>
+      <div class="chat-header-title">Messages</div>
+      <div class="chat-header-sub">Real-time patient chat</div>
+    </div>
+    <button class="m-x" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-tabs">
+    <button class="chat-tab active" onclick="switchChatTab('convs', this)">Conversations</button>
+    <button class="chat-tab" onclick="switchChatTab('announce', this)">📢 Announce</button>
+  </div>
+
+  <!-- CONVERSATIONS PANEL -->
+  <div class="chat-panel active" id="chat-convs">
+    <div class="conv-list" id="convList"><div style="padding:20px;text-align:center;font-size:12px;color:var(--gray-400)">No conversations yet</div></div>
+  </div>
+
+  <!-- MESSAGES VIEW (shown when a conv is selected) -->
+  <div class="chat-panel" id="chat-msgs">
+    <div class="msgs-header">
+      <button class="msgs-back" onclick="backToConvs()">‹</button>
+      <div>
+        <div class="msgs-name" id="msgsName">—</div>
+        <div style="font-size:11px;color:var(--gray-400)" id="msgsStatus">—</div>
+      </div>
+    </div>
+    <div class="msgs-list" id="msgsList"></div>
+    <div class="chat-input-area">
+      <textarea class="chat-msg-input" id="staffMsgInput" placeholder="Type a message…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendStaffMsg();}"></textarea>
+      <button class="chat-send-btn" onclick="sendStaffMsg()">➤</button>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENT PANEL -->
+  <div class="chat-panel" id="chat-announce">
+    <div class="announce-panel">
+      <div class="announce-txt">Send a broadcast message to all customers. It will appear as a notification in their app.</div>
+      <div class="fg"><label>Announcement Message</label><textarea id="announceMsg" placeholder="e.g. We will be closed on April 1 for maintenance…" style="min-height:80px"></textarea></div>
+      <button class="btn-ok" onclick="sendAnnouncement()">📢 Send to All Customers</button>
+      <div class="announce-history" id="announceHistory"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  if (sessionStorage.getItem('petden-staff') !== '1') {
+    window.location.href = 'index.html';
+  }
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    });
+  }
+</script>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, addDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const SLOTS = ['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM'];
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAGpevl2iFKjA8EmTntB780prnQVJ4AHSE",
+    authDomain: "pawcare-clinic.firebaseapp.com",
+    projectId: "pawcare-clinic",
+    appId: "1:692804694986:web:39d9218e4251184cb71533"
+  };
+
+  // ── INIT ─────────────────────────────────────────────────────────────────────
+  const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+  const db  = getFirestore(app);
+
+  // ── STATE ─────────────────────────────────────────────────────────────────────
+  let appts = {}, cancelled = {}, selDate = null, weekStart = null;
+  let pendSlot = null, detKey = null, detSlot = null;
+  let rsKey = null, rsSlotIdx = null;
+  let shownReminders = new Set();
+  let notifications = JSON.parse(localStorage.getItem('petden-staff-notifs') || '[]');
+  let knownApptIds = new Set();
+  let peakChart = null;
+  let activeConvId = null;
+  let msgsUnsub = null;
+
+  // ── DATE UTILS ────────────────────────────────────────────────────────────────
+  function todayKey() { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+  function dk(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function isBeforeToday(k) { return k < todayKey(); }
+  function isToday(k) { return k === todayKey(); }
+  function fmtFull(d) { return d.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
+  function fmtShort(d) { return d.toLocaleDateString('en-PH',{month:'short',day:'numeric'}); }
+  function slotMin(s) { const [t,mer]=s.split(' ');let [h,min]=t.split(':').map(Number);if(mer==='PM'&&h!==12)h+=12;if(mer==='AM'&&h===12)h=0;return h*60+min; }
+  function isPastSlot(slot,dateKey) { if(isBeforeToday(dateKey))return true;if(!isToday(dateKey))return false;const now=new Date();return slotMin(slot)<now.getHours()*60+now.getMinutes(); }
+  function weekOf(d) { const c=new Date(d.getFullYear(),d.getMonth(),d.getDate());c.setDate(c.getDate()-c.getDay());return c; }
+  function dateFromKey(k) { const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d); }
+  function nowTimeStr() { const n=new Date(),h=n.getHours(),m=String(n.getMinutes()).padStart(2,'0');return (h%12||12)+':'+m+' '+(h>=12?'PM':'AM'); }
+
+  // ── UI UTILS ──────────────────────────────────────────────────────────────────
+  function toast(msg) { const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800); }
+  window.closeOverlay = id => document.getElementById(id).classList.remove('open');
+  document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(el=>el.classList.remove('open'));});
+
+  // ── DARK MODE ─────────────────────────────────────────────────────────────────
+  window.toggleDark = function() {
+    document.body.classList.toggle('dark');
+    document.getElementById('darkToggle').classList.toggle('on');
+    localStorage.setItem('petden-dark', document.body.classList.contains('dark') ? '1' : '0');
+    updateChartTheme();
+  };
+  if (localStorage.getItem('petden-dark') === '1') {
+    document.body.classList.add('dark');
+    document.getElementById('darkToggle').classList.add('on');
+  }
+
+  // ── CLOCK ─────────────────────────────────────────────────────────────────────
+  function tick() { const n=new Date(),h=n.getHours(),m=String(n.getMinutes()).padStart(2,'0');document.getElementById('clock').textContent=(h%12||12)+':'+m+' '+(h>=12?'PM':'AM'); }
+  tick(); setInterval(tick,10000);
+
+  // ── FIREBASE LISTENER ─────────────────────────────────────────────────────────
+  onSnapshot(collection(db,'appointments'), snapshot => {
+    const newAppts = {};
+    snapshot.forEach(docSnap => {
+      const a = docSnap.data();
+      if (!newAppts[a.dateKey]) newAppts[a.dateKey] = {};
+      newAppts[a.dateKey][a.slotIdx] = {...a, firestoreId:docSnap.id};
+      // Detect new bookings for notifications
+      if (!knownApptIds.has(docSnap.id) && knownApptIds.size > 0) {
+        const email = a.customerEmail || a.customerId || a.uid || 'Customer';
+        addNotification('📅 New Booking', `${a.petName} (${a.ownerName}) - ${email} booked for ${a.timeSlot} on ${a.dateKey}`);
+      }
+      knownApptIds.add(docSnap.id);
+    });
+    appts = newAppts;
+    renderCal(); renderSlots(); renderQueue(); renderTimeline(); updateStats(); updateAnalytics(); checkReminders();
+  });
+
+  // Cancelled appointments listener
+  onSnapshot(collection(db,'cancelled'), snapshot => {
+    cancelled = {};
+    snapshot.forEach(docSnap => {
+      cancelled[docSnap.id] = docSnap.data();
+    });
+    updateAnalytics();
+  });
+
+  // ── CALENDAR ──────────────────────────────────────────────────────────────────
+  function initCal() {
+    const now = new Date();
+    weekStart = weekOf(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+    selDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    renderCal(); renderSlots(); renderQueue(); renderTimeline();
+  }
+
+  window.shiftWeek = function(dir) { weekStart.setDate(weekStart.getDate()+dir*7); renderCal(); };
+
+  function renderCal() {
+    if (!weekStart) return;
+    const mid = new Date(weekStart); mid.setDate(mid.getDate()+3);
+    document.getElementById('calLabel').textContent = mid.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let h = days.map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+    for (let i=0; i<7; i++) {
+      const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()+i);
+      const k = dk(d), isTod=isToday(k), isPast=isBeforeToday(k), isSel=selDate&&k===dk(selDate);
+      const cnt = appts[k] ? Object.keys(appts[k]).length : 0;
+      let cls = 'cal-day'+(isTod?' today':'')+(isPast?' past':'')+(isSel?' selected':'');
+      h += `<div class="${cls}" onclick="selectDay('${k}')">
+        <div class="day-n">${d.getDate()}</div>
+        ${isTod?'<div class="today-lbl">Today</div>':''}
+        ${cnt?`<div class="day-dot">${cnt} appt${cnt>1?'s':''}</div>`:''}
+      </div>`;
+    }
+    document.getElementById('calGrid').innerHTML = h;
+  }
+
+  window.selectDay = function(k) {
+    if (isBeforeToday(k)) return;
+    selDate = dateFromKey(k);
+    renderCal(); renderSlots(); renderQueue();
+  };
+
+  // ── SLOTS ─────────────────────────────────────────────────────────────────────
+  function renderSlots() {
+    if (!selDate) return;
+    const k = dk(selDate), da = appts[k] || {};
+    document.getElementById('slotsLbl').innerHTML = `Slots — <strong>${fmtFull(selDate)}</strong>`;
+    let h = '';
+    SLOTS.forEach((s,i) => {
+      const booked = da[i], past = isPastSlot(s,k);
+      const status = booked ? (past ? 'completed' : (booked.status || 'pending')) : '';
+      let cls = 'slot' + (booked ? ` booked ${status}` : past ? ' past' : '');
+      const oc = booked ? `onclick="openDetail('${k}',${i})"` : past ? '' : `onclick="openBook(${i})"`;
+      h += `<div class="${cls}" ${oc}>
+        <div class="slot-t">${s}</div>
+        <div class="slot-s">${booked?(status.charAt(0).toUpperCase()+status.slice(1)):past?'Passed':'Available'}</div>
+        ${booked?`<div class="slot-chip">${booked.petName}</div>`:''}
+      </div>`;
+    });
+    document.getElementById('slotsGrid').innerHTML = h;
+  }
+
+  // ── BOOKING ───────────────────────────────────────────────────────────────────
+  window.openBook = function(i) {
+    pendSlot = i;
+    document.getElementById('bLabel').textContent = SLOTS[i]+' · '+fmtShort(selDate);
+    ['fOwner','fPet','fReason'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fAnimal').value = '';
+    document.getElementById('fStatus').value = 'pending';
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = false; btn.textContent = 'Confirm Appointment';
+    document.getElementById('bookModal').classList.add('open');
+    setTimeout(()=>document.getElementById('fOwner').focus(), 200);
+  };
+
+  window.confirmBooking = async function() {
+    const o=document.getElementById('fOwner').value.trim();
+    const p=document.getElementById('fPet').value.trim();
+    const a=document.getElementById('fAnimal').value;
+    const r=document.getElementById('fReason').value.trim();
+    const s=document.getElementById('fStatus').value;
+    if (!o||!p||!a||!r) { toast('Please fill in all fields.'); return; }
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const k = dk(selDate), docId = `${k}_${pendSlot}`;
+    try {
+      await setDoc(doc(db,'appointments',docId), {
+        id:docId, ownerName:o, petName:p, animalType:a, reason:r,
+        timeSlot:SLOTS[pendSlot], slotIdx:pendSlot, dateKey:k,
+        status:s, notes:'', createdAt:new Date().toISOString(), bookedByStaff:true
+      });
+      closeOverlay('bookModal');
+      toast(`✓ ${p}'s appointment saved`);
+    } catch(e) { btn.disabled=false; btn.textContent='Confirm Appointment'; toast('Error saving.'); }
+  };
+
+  // ── WALK-IN ───────────────────────────────────────────────────────────────────
+  window.openWalkIn = function() {
+    ['wiOwner','wiPet','wiReason'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('wiAnimal').value = '';
+    const sel = document.getElementById('wiSlot');
+    const k = selDate ? dk(selDate) : todayKey();
+    const da = appts[k] || {};
+    sel.innerHTML = '<option value="">Select time…</option>' +
+      SLOTS.map((s,i) => {
+        const taken = da[i] || isPastSlot(s,k);
+        return taken ? '' : `<option value="${i}">${s}</option>`;
+      }).join('');
+    const btn = document.getElementById('wiBtn');
+    btn.disabled = false; btn.textContent = 'Book Walk-in';
+    document.getElementById('walkInModal').classList.add('open');
+  };
+
+  window.confirmWalkIn = async function() {
+    const o=document.getElementById('wiOwner').value.trim();
+    const p=document.getElementById('wiPet').value.trim();
+    const a=document.getElementById('wiAnimal').value;
+    const r=document.getElementById('wiReason').value.trim();
+    const slotIdx=parseInt(document.getElementById('wiSlot').value);
+    if (!o||!p||!a||!r||isNaN(slotIdx)) { toast('Please fill in all fields.'); return; }
+    const btn = document.getElementById('wiBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const k = selDate ? dk(selDate) : todayKey();
+    const docId = `${k}_${slotIdx}`;
+    try {
+      await setDoc(doc(db,'appointments',docId), {
+        id:docId, ownerName:o, petName:p, animalType:a, reason:r,
+        timeSlot:SLOTS[slotIdx], slotIdx:slotIdx, dateKey:k,
+        status:'confirmed', notes:'Walk-in patient', createdAt:new Date().toISOString(),
+        isWalkIn:true, bookedByStaff:true
+      });
+      closeOverlay('walkInModal');
+      toast(`✓ Walk-in for ${p} booked at ${SLOTS[slotIdx]}`);
+    } catch(e) { btn.disabled=false; btn.textContent='Book Walk-in'; toast('Error saving.'); }
+  };
+
+  // ── DETAIL ────────────────────────────────────────────────────────────────────
+  window.openDetail = function(k,i) {
+    detKey=k; detSlot=i;
+    const a=appts[k][i], d=dateFromKey(k);
+    document.getElementById('dLabel').textContent = a.timeSlot+' · '+fmtShort(d);
+    document.getElementById('dPet').textContent = a.petName;
+    document.getElementById('dOwner').textContent = a.ownerName;
+    document.getElementById('dAnimal').textContent = a.animalType;
+    document.getElementById('dDate').textContent = fmtFull(d)+' at '+a.timeSlot;
+    document.getElementById('dReason').textContent = a.reason;
+    const past = isPastSlot(a.timeSlot, k);
+    const status = past ? 'completed' : (a.status || 'pending');
+    document.getElementById('dStatus').value = status;
+    document.getElementById('dNotes').value = a.notes || '';
+    document.getElementById('cancelBtn').style.display = past ? 'none' : 'block';
+    document.getElementById('pastNote').style.display = past ? 'block' : 'none';
+    document.getElementById('detailModal').classList.add('open');
+  };
+
+  window.updateStatus = async function(newStatus) {
+    if (!detKey || detSlot===null) return;
+    const a = appts[detKey][detSlot];
+    try {
+      await updateDoc(doc(db,'appointments',a.firestoreId||a.id), { status:newStatus });
+      // Notify customer if confirmed
+      if (newStatus === 'confirmed' && a.customerId) {
+        await setDoc(doc(db,'notifications',`${a.firestoreId}_confirm`), {
+          customerId: a.customerId,
+          title: '✅ Appointment Confirmed',
+          body: `Your appointment for ${a.petName} at ${a.timeSlot} on ${a.dateKey} has been confirmed by the clinic.`,
+          createdAt: new Date().toISOString(),
+          read: false
+        });
+      }
+      toast('✓ Status updated to '+newStatus);
+    } catch(e) { toast('Error updating status.'); }
+  };
+
+  window.saveNotes = async function() {
+    if (!detKey || detSlot===null) return;
+    const a = appts[detKey][detSlot];
+    const notes = document.getElementById('dNotes').value.trim();
+    try {
+      await updateDoc(doc(db,'appointments',a.firestoreId||a.id), { notes });
+      toast('✓ Notes saved');
+    } catch(e) { toast('Error saving notes.'); }
+  };
+
+  window.cancelFromDetail = async function() {
+    if (!detKey || detSlot===null) return;
+    const a = appts[detKey][detSlot];
+    try {
+      // Save to cancelled collection for analytics
+      await setDoc(doc(db,'cancelled',a.firestoreId||a.id), {...a, cancelledAt:new Date().toISOString()});
+      await deleteDoc(doc(db,'appointments',a.firestoreId||a.id));
+      closeOverlay('detailModal');
+      toast(`${a.petName}'s appointment cancelled`);
+    } catch(e) { toast('Error cancelling.'); }
+  };
+
+  window.cancelAppt = async function(k,i) {
+    const a = appts[k][i];
+    try {
+      await setDoc(doc(db,'cancelled',a.firestoreId||a.id), {...a, cancelledAt:new Date().toISOString()});
+      await deleteDoc(doc(db,'appointments',a.firestoreId||a.id));
+      toast(`${a.petName}'s appointment cancelled`);
+    } catch(e) { toast('Error cancelling.'); }
+  };
+
+  // ── RESCHEDULE ────────────────────────────────────────────────────────────────
+  window.openRescheduleFromDetail = function() {
+    if (!detKey || detSlot===null) return;
+    openReschedule(detKey, detSlot);
+    closeOverlay('detailModal');
+  };
+
+  function openReschedule(k,i) {
+    rsKey=k; rsSlotIdx=i;
+    const a = appts[k][i];
+    document.getElementById('rsLabel').textContent = a.petName+' · '+a.timeSlot;
+    document.getElementById('rsDate').value = k;
+    const sel = document.getElementById('rsSlot');
+    sel.innerHTML = '<option value="">Select time…</option>'+SLOTS.map((s,idx)=>`<option value="${idx}">${s}</option>`).join('');
+    document.getElementById('rescheduleModal').classList.add('open');
+  }
+  window.openReschedule = openReschedule;
+
+  window.confirmReschedule = async function() {
+    const newDate = document.getElementById('rsDate').value;
+    const newSlotIdx = parseInt(document.getElementById('rsSlot').value);
+    if (!newDate||isNaN(newSlotIdx)) { toast('Please select date and time.'); return; }
+    if (newDate===rsKey&&newSlotIdx===rsSlotIdx) { toast('Please pick a different slot.'); return; }
+    if (appts[newDate]&&appts[newDate][newSlotIdx]) { toast('That slot is already taken.'); return; }
+    const old = appts[rsKey][rsSlotIdx];
+    try {
+      await deleteDoc(doc(db,'appointments',old.firestoreId||old.id));
+      const newDocId = `${newDate}_${newSlotIdx}`;
+      await setDoc(doc(db,'appointments',newDocId), {
+        ...old, id:newDocId, dateKey:newDate, slotIdx:newSlotIdx,
+        timeSlot:SLOTS[newSlotIdx], firestoreId:newDocId
+      });
+      // Notify customer of reschedule
+      if (old.customerId) {
+        await setDoc(doc(db,'notifications',`${newDocId}_reschedule`), {
+          customerId: old.customerId,
+          title: '📅 Appointment Rescheduled',
+          body: `${old.petName}'s appointment has been rescheduled to ${SLOTS[newSlotIdx]} on ${newDate}.`,
+          createdAt: new Date().toISOString(),
+          read: false
+        });
+      }
+      closeOverlay('rescheduleModal');
+      toast(`✓ Rescheduled to ${SLOTS[newSlotIdx]} on ${newDate}`);
+    } catch(e) { toast('Error rescheduling.'); }
+  };
+
+  // ── QUEUE ─────────────────────────────────────────────────────────────────────
+  function renderQueue() {
+    const k = selDate ? dk(selDate) : todayKey();
+    const sorted = Object.values(appts[k]||{}).sort((a,b)=>a.slotIdx-b.slotIdx);
+    document.getElementById('qSub').textContent = fmtShort(dateFromKey(k));
+    document.getElementById('qCount').textContent = sorted.length;
+    const list = document.getElementById('qList');
+    if (!sorted.length) { list.innerHTML='<div class="q-empty">No appointments booked.</div>'; return; }
+    list.innerHTML = sorted.map(a => {
+      const isPast = isPastSlot(a.timeSlot, k);
+      const status = isPast ? 'completed' : (a.status || 'pending');
+      return `<div class="q-card" onclick="openDetail('${k}',${a.slotIdx})">
+        <div class="qc-top">
+          <div class="qc-time">${a.timeSlot}</div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <div class="qc-status ${status}">${status}</div>
+            <button class="qc-x" onclick="event.stopPropagation();cancelAppt('${k}',${a.slotIdx})">✕</button>
+          </div>
+        </div>
+        <div class="qc-pet">${a.petName}${a.isWalkIn?' <span style="font-size:9px;background:var(--amber-50);color:var(--amber-600);padding:1px 5px;border-radius:4px;border:1px solid var(--amber-400)">Walk-in</span>':''}</div>
+        <div class="qc-own">${a.ownerName}</div>
+        <div class="qc-type">${a.animalType}</div>
+        ${a.notes?`<div style="font-size:10px;color:var(--gray-400);margin-top:4px;font-style:italic">📝 ${a.notes.substring(0,40)}${a.notes.length>40?'…':''}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  // ── TIMELINE ──────────────────────────────────────────────────────────────────
+  function renderTimeline() {
+    const k = selDate ? dk(selDate) : todayKey();
+    const sorted = Object.values(appts[k]||{}).sort((a,b)=>a.slotIdx-b.slotIdx);
+    const tl = document.getElementById('timeline');
+    if (!sorted.length) { tl.innerHTML='<div class="sbar-empty">No patients<br>scheduled yet.</div>'; return; }
+    const now=new Date(), nm=now.getHours()*60+now.getMinutes();
+    tl.innerHTML = sorted.map((a,i) => {
+      const isNext = slotMin(a.timeSlot)>=nm && (i===0||slotMin(sorted[i-1].timeSlot)<nm);
+      const isPast = isPastSlot(a.timeSlot, k);
+      const status = isPast ? 'completed' : (a.status || 'pending');
+      return `<div class="tl-item" onclick="openDetail('${k}',${a.slotIdx})">
+        <div class="tl-dot${isNext?' next':''}"></div>
+        <div>
+          <div class="tl-time">${a.timeSlot} <span style="font-size:9px;color:${isPast?'var(--gray-400)':'var(--teal-600)'};font-weight:600">${status}</span></div>
+          <div class="tl-pet">${a.petName}</div>
+          <div class="tl-own">${a.ownerName}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── STATS ─────────────────────────────────────────────────────────────────────
+  function updateStats() {
+    const todayK = todayKey();
+    document.getElementById('statToday').textContent = Object.keys(appts[todayK]||{}).length;
+    let weekCount=0;
+    if (weekStart) {
+      for (let i=0;i<7;i++) {
+        const d=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+i);
+        weekCount += Object.keys(appts[dk(d)]||{}).length;
+      }
+    }
+    document.getElementById('statWeek').textContent = weekCount;
+    let total=0;
+    Object.values(appts).forEach(day=>total+=Object.keys(day).length);
+    document.getElementById('statTotal').textContent = total;
+    const animalCount={};
+    Object.values(appts).forEach(day=>Object.values(day).forEach(a=>{
+      const type = a.animalType?a.animalType.replace(/[^\w ]/g,'').trim():'Other';
+      animalCount[type]=(animalCount[type]||0)+1;
+    }));
+    const topAnimal=Object.entries(animalCount).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('statCommon').textContent = topAnimal?topAnimal[0].split(' ')[0]:'—';
+  }
+
+  // ── ANALYTICS ─────────────────────────────────────────────────────────────────
+  function updateAnalytics() {
+    const todayK = todayKey();
+    const now = new Date();
+    // Day/Week/Month counts
+    document.getElementById('aDay').textContent = Object.keys(appts[todayK]||{}).length;
+    let wk=0;
+    for (let i=0;i<7;i++) {
+      const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-now.getDay()+i);
+      wk += Object.keys(appts[dk(d)]||{}).length;
+    }
+    document.getElementById('aWeek').textContent = wk;
+    let mo=0;
+    for (let i=1;i<=31;i++) {
+      const d=new Date(now.getFullYear(),now.getMonth(),i);
+      if (d.getMonth()!==now.getMonth()) break;
+      mo += Object.keys(appts[dk(d)]||{}).length;
+    }
+    document.getElementById('aMonth').textContent = mo;
+
+    // Peak hours
+    const hourCounts = {};
+    SLOTS.forEach(s=>{ hourCounts[s]=0; });
+    Object.values(appts).forEach(day=>Object.values(day).forEach(a=>{ if(hourCounts[a.timeSlot]!==undefined)hourCounts[a.timeSlot]++; }));
+    renderPeakChart(Object.keys(hourCounts), Object.values(hourCounts));
+
+    // Animal type bars
+    const animalCount={};
+    Object.values(appts).forEach(day=>Object.values(day).forEach(a=>{
+      const type=a.animalType?a.animalType.replace(/[^\w ]/g,'').trim():'Other';
+      animalCount[type]=(animalCount[type]||0)+1;
+    }));
+    const sorted=Object.entries(animalCount).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const max=sorted[0]?sorted[0][1]:1;
+    document.getElementById('animalBars').innerHTML = sorted.length ? sorted.map(([name,cnt])=>`
+      <div class="animal-bar-row">
+        <div class="animal-bar-label">${name}</div>
+        <div class="animal-bar-track"><div class="animal-bar-fill" style="width:${Math.round(cnt/max*100)}%"></div></div>
+        <div class="animal-bar-count">${cnt}</div>
+      </div>`).join('') : '<div style="font-size:11px;color:var(--gray-400)">No data yet</div>';
+
+    // Cancellation rate
+    const totalBooked = Object.values(appts).reduce((s,d)=>s+Object.keys(d).length,0);
+    const totalCancelled = Object.keys(cancelled).length;
+    const grandTotal = totalBooked + totalCancelled;
+    const rate = grandTotal > 0 ? Math.round(totalCancelled/grandTotal*100) : 0;
+    document.getElementById('cancelRate').textContent = rate+'%';
+    document.getElementById('cancelLbl').textContent = `${totalCancelled} cancelled of ${grandTotal} total`;
+  }
+
+  function renderPeakChart(labels, data) {
+    const ctx = document.getElementById('peakChart').getContext('2d');
+    const isDark = document.body.classList.contains('dark');
+    const textColor = isDark ? '#6b8878' : '#8a9990';
+    const gridColor = isDark ? '#243028' : '#e8edea';
+    if (peakChart) peakChart.destroy();
+    peakChart = new Chart(ctx, {
+      type:'bar',
+      data:{ labels:labels.map(l=>l.replace(' AM','a').replace(' PM','p')), datasets:[{data, backgroundColor:'#1d9e75aa', borderRadius:3}] },
+      options:{
+        responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+        scales:{
+          x:{ ticks:{color:textColor,font:{size:8}}, grid:{color:gridColor} },
+          y:{ ticks:{color:textColor,font:{size:8},stepSize:1}, grid:{color:gridColor}, beginAtZero:true }
+        }
+      }
+    });
+  }
+
+  function updateChartTheme() { updateAnalytics(); }
+
+  // ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+  function addNotification(title, body) {
+    const n = { title, body, time:new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}), id:Date.now() };
+    notifications.unshift(n);
+    if (notifications.length > 20) notifications.pop();
+    localStorage.setItem('petden-staff-notifs', JSON.stringify(notifications));
+    renderNotifs();
+    // Play a subtle sound ping
+    try { const ctx=new AudioContext(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=520; g.gain.setValueAtTime(0.1,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4); o.start(ctx.currentTime); o.stop(ctx.currentTime+0.4); } catch(e){}
+  }
+
+  function renderNotifs() {
+    const el = document.getElementById('notifList');
+    document.getElementById('notifBadge').classList.toggle('show', notifications.length > 0);
+    document.getElementById('notifBadge').textContent = notifications.length > 9 ? '9+' : notifications.length;
+    if (!notifications.length) { el.innerHTML='<div class="notif-empty">No new notifications</div>'; return; }
+    el.innerHTML = notifications.map(n=>`
+      <div class="notif-item">
+        <div class="notif-item-title">${n.title}</div>
+        <div class="notif-item-body">${n.body}</div>
+        <div class="notif-item-time">${n.time}</div>
+      </div>`).join('');
+  }
+
+  window.toggleNotifPanel = function() {
+    const panel = document.getElementById('notifPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      // Clear badge when panel is opened
+      document.getElementById('notifBadge').classList.remove('show');
+    }
+    if (document.getElementById('chatWindow').classList.contains('open')) {
+      document.getElementById('chatWindow').classList.remove('open');
+    }
+  };
+
+  window.clearNotifs = function() {
+    notifications = [];
+    localStorage.setItem('petden-staff-notifs', '[]');
+    renderNotifs();
+  };
+
+  // Close notif panel when clicking outside
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('notifPanel');
+    const btn = e.target.closest('.notif-btn');
+    if (!btn && !panel.contains(e.target)) panel.classList.remove('open');
+  });
+
+  // ── CHAT ──────────────────────────────────────────────────────────────────────
+  window.toggleChat = function() {
+    const w = document.getElementById('chatWindow');
+    w.classList.toggle('open');
+    if (w.classList.contains('open')) {
+      loadConversations();
+      document.getElementById('notifPanel').classList.remove('open');
+    }
+  };
+
+  window.switchChatTab = function(tab, btn) {
+    document.querySelectorAll('.chat-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('chat-convs').classList.toggle('active', tab==='convs');
+    document.getElementById('chat-msgs').classList.remove('active');
+    document.getElementById('chat-announce').classList.toggle('active', tab==='announce');
+    if (tab==='convs') loadConversations();
+    if (tab==='announce') loadAnnouncements();
+  };
+
+  async function loadConversations() {
+    const convList = document.getElementById('convList');
+    try {
+      const snap = await getDocs(collection(db,'conversations'));
+      if (snap.empty) { convList.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--gray-400)">No conversations yet</div>'; return; }
+      const convs = [];
+      snap.forEach(d=>convs.push({id:d.id,...d.data()}));
+      convs.sort((a,b)=>(b.lastAt||'').localeCompare(a.lastAt||''));
+      convList.innerHTML = convs.map(c=>`
+        <div class="conv-item${c.id===activeConvId?' active':''}" onclick="openConversation('${c.id}','${c.customerName||'Customer'}')">
+          <div class="conv-avatar">👤</div>
+          <div style="flex:1;min-width:0">
+            <div class="conv-name">${c.customerName||'Customer'}</div>
+            <div class="conv-preview">${c.lastMsg||'No messages yet'}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div class="conv-time">${c.lastAt?new Date(c.lastAt).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}):''}</div>
+            ${c.unreadStaff?`<div class="conv-unread">${c.unreadStaff}</div>`:''}
+          </div>
+        </div>`).join('');
+    } catch(e) { convList.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--gray-400)">Error loading conversations</div>'; }
+  }
+
+  window.openConversation = function(convId, name) {
+    activeConvId = convId;
+    document.getElementById('msgsName').textContent = name;
+    document.getElementById('msgsStatus').textContent = 'Online';
+    document.getElementById('chat-convs').classList.remove('active');
+    document.getElementById('chat-msgs').classList.add('active');
+    // Unsubscribe previous listener
+    if (msgsUnsub) msgsUnsub();
+    const msgsRef = collection(db,'conversations',convId,'messages');
+    msgsUnsub = onSnapshot(query(msgsRef, orderBy('createdAt')), snap => {
+      const list = document.getElementById('msgsList');
+      if (snap.empty) { list.innerHTML='<div style="text-align:center;font-size:12px;color:var(--gray-400);padding:20px">No messages yet</div>'; return; }
+      list.innerHTML = snap.docs.map(d=>{
+        const m=d.data();
+        const isStaff = m.sender==='staff';
+        return `<div style="display:flex;flex-direction:column;align-items:${isStaff?'flex-end':'flex-start'}">
+          <div class="msg-bubble ${isStaff?'sent':'recv'}">${m.text}<div class="msg-time">${m.createdAt?new Date(m.createdAt).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}):''}</div></div>
+        </div>`;
+      }).join('');
+      list.scrollTop = list.scrollHeight;
+    });
+    // Mark as read
+    updateDoc(doc(db,'conversations',convId), { unreadStaff:0 }).catch(()=>{});
+  };
+
+  window.backToConvs = function() {
+    if (msgsUnsub) { msgsUnsub(); msgsUnsub=null; }
+    activeConvId = null;
+    document.getElementById('chat-msgs').classList.remove('active');
+    document.getElementById('chat-convs').classList.add('active');
+    loadConversations();
+  };
+
+  window.sendStaffMsg = async function() {
+    if (!activeConvId) return;
+    const input = document.getElementById('staffMsgInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+      const convRef = doc(db,'conversations',activeConvId);
+      await addDoc(collection(db,'conversations',activeConvId,'messages'), {
+        text, sender:'staff', createdAt:new Date().toISOString()
+      });
+      await updateDoc(convRef, { lastMsg:text, lastAt:new Date().toISOString(), unreadCustomer:1 });
+    } catch(e) { toast('Error sending message.'); }
+  };
+
+  // ── ANNOUNCEMENTS ─────────────────────────────────────────────────────────────
+  window.sendAnnouncement = async function() {
+    const msg = document.getElementById('announceMsg').value.trim();
+    if (!msg) { toast('Please type a message.'); return; }
+    try {
+      await addDoc(collection(db,'announcements'), {
+        message:msg, createdAt:new Date().toISOString(), sender:'staff'
+      });
+      document.getElementById('announceMsg').value = '';
+      toast('✓ Announcement sent to all customers!');
+      loadAnnouncements();
+    } catch(e) { toast('Error sending announcement.'); }
+  };
+
+  async function loadAnnouncements() {
+    try {
+      const snap = await getDocs(collection(db,'announcements'));
+      const items = [];
+      snap.forEach(d=>items.push(d.data()));
+      items.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+      const hist = document.getElementById('announceHistory');
+      hist.innerHTML = items.length ? `<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-400);margin-bottom:8px">Sent Announcements</div>`+
+        items.slice(0,5).map(a=>`
+          <div class="announce-item">
+            <div class="announce-item-msg">${a.message}</div>
+            <div class="announce-item-time">${new Date(a.createdAt).toLocaleString('en-PH')}</div>
+          </div>`).join('') : '';
+    } catch(e) {}
+  }
+
+  // ── SEARCH QUEUE ──────────────────────────────────────────────────────────────
+  window.filterQueue = function(query) {
+    const k = selDate ? dk(selDate) : todayKey();
+    const sorted = Object.values(appts[k]||{}).sort((a,b)=>a.slotIdx-b.slotIdx);
+    const q = query.toLowerCase().trim();
+    const filtered = q ? sorted.filter(a=>a.petName.toLowerCase().includes(q)||a.ownerName.toLowerCase().includes(q)||a.animalType.toLowerCase().includes(q)) : sorted;
+    const list = document.getElementById('qList');
+    document.getElementById('qCount').textContent = filtered.length;
+    if (!filtered.length) { list.innerHTML=`<div class="q-empty">No results for "${query}"</div>`; return; }
+    list.innerHTML = filtered.map(a=>`
+      <div class="q-card" onclick="openDetail('${k}',${a.slotIdx})">
+        <div class="qc-top">
+          <div class="qc-time">${a.timeSlot}</div>
+          <button class="qc-x" onclick="event.stopPropagation();cancelAppt('${k}',${a.slotIdx})">✕</button>
+        </div>
+        <div class="qc-pet">${a.petName}</div>
+        <div class="qc-own">${a.ownerName}</div>
+        <div class="qc-type">${a.animalType}</div>
+      </div>`).join('');
+  };
+
+  // ── REMINDERS ─────────────────────────────────────────────────────────────────
+  function checkReminders() {
+    const todayK = todayKey();
+    const now = new Date(), nowMin = now.getHours()*60+now.getMinutes();
+    Object.values(appts[todayK]||{}).forEach(a=>{
+      const diff = slotMin(a.timeSlot)-nowMin;
+      const key = todayK+'_'+a.slotIdx;
+      if (diff>0&&diff<=30&&!shownReminders.has(key)) {
+        shownReminders.add(key);
+        const popup = document.getElementById('reminderPopup');
+        document.getElementById('reminderTxt').innerHTML = `<strong>${a.petName}</strong> (${a.ownerName})<br>${a.timeSlot} — in ${diff} minutes`;
+        popup.classList.add('show');
+        setTimeout(()=>popup.classList.remove('show'), 8000);
+      }
+    });
+  }
+  setInterval(checkReminders, 60000);
+
+  // ── PRINT ─────────────────────────────────────────────────────────────────────
+  window.printSchedule = function() {
+    document.body.setAttribute('data-print-date', new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'}));
+    window.print();
+  };
+
+  // ── LOGOUT ────────────────────────────────────────────────────────────────────
+  window.doLogout = function() {
+    sessionStorage.removeItem('petden-staff');
+    sessionStorage.removeItem('petden-user');
+    window.location.href = 'index.html';
+  };
+
+  // ── BOOT ──────────────────────────────────────────────────────────────────────
+  initCal();
+  renderNotifs();
+  document.getElementById('loadingScreen').style.display = 'none';
+</script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1d9e75">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>The Pet Den — Book Appointment</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-50: #e1f5ee; --teal-100: #9fe1cb; --teal-200: #5dcaa5;
+    --teal-400: #1d9e75; --teal-600: #0f6e56;
+    --gray-50: #f7f9f8; --gray-100: #e8edea; --gray-200: #cdd5d0;
+    --gray-400: #8a9990; --gray-600: #4f6058; --gray-800: #2a3830;
+    --coral-50: #faece7; --coral-200: #f0997b; --coral-600: #993c1d;
+    --white: #ffffff;
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.12);
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px;
+  }
+  body { font-family:'DM Sans',sans-serif; background:#f0f6f3; color:var(--gray-800); min-height:100vh; }
+
+  /* HEADER */
+  .header { background:var(--white); padding:16px 24px; box-shadow:0 2px 12px rgba(0,0,0,.06); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .logo-wrap { display:flex; align-items:center; gap:12px; }
+  .logo-icon { width:44px; height:44px; background:var(--teal-400); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 4px 12px rgba(29,158,117,.25); }
+  .logo-name { font-family:'DM Serif Display',serif; font-size:20px; color:var(--teal-600); }
+  .logo-sub { font-size:10px; color:var(--gray-400); letter-spacing:1.5px; text-transform:uppercase; }
+  .header-right { display:flex; align-items:center; gap:16px; }
+  .user-email { font-size:13px; color:var(--gray-600); }
+  .btn-logout { padding:8px 16px; background:transparent; border:1.5px solid var(--gray-200); color:var(--gray-600); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .btn-logout:hover { background:var(--gray-50); border-color:var(--gray-400); color:var(--gray-800); }
+
+  /* MAIN */
+  .main { max-width:900px; margin:0 auto; padding:32px 20px; }
+  .page-title { font-family:'DM Serif Display',serif; font-size:28px; color:var(--gray-800); margin-bottom:8px; }
+  .page-sub { font-size:14px; color:var(--gray-400); margin-bottom:32px; }
+
+  /* TABS */
+  .tabs { display:flex; gap:8px; margin-bottom:28px; }
+  .tab { padding:10px 20px; background:var(--white); border:1.5px solid var(--gray-200); border-radius:var(--r-md); font-size:13px; font-weight:600; color:var(--gray-600); cursor:pointer; transition:all .15s; }
+  .tab.active { background:var(--teal-400); border-color:var(--teal-400); color:var(--white); }
+  .tab:hover:not(.active) { border-color:var(--teal-200); color:var(--teal-600); }
+
+  /* SECTIONS */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* BOOKING FORM */
+  .card { background:var(--white); border-radius:var(--r-lg); padding:28px; box-shadow:var(--shadow-lg); margin-bottom:24px; }
+  .card-title { font-family:'DM Serif Display',serif; font-size:18px; color:var(--gray-800); margin-bottom:20px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .fg { margin-bottom:0; }
+  .fg.full { grid-column:1/-1; }
+  label { display:block; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--gray-600); margin-bottom:6px; }
+  input, select, textarea { width:100%; padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--gray-800); background:var(--white); outline:none; transition:border-color .15s; }
+  input:focus, select:focus, textarea:focus { border-color:var(--teal-400); }
+  textarea { resize:vertical; min-height:80px; }
+  .btn-book { width:100%; padding:14px; background:var(--teal-400); color:#fff; border:none; border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:background .15s; margin-top:8px; }
+  .btn-book:hover { background:var(--teal-600); }
+  .btn-book:disabled { background:var(--gray-200); cursor:not-allowed; }
+
+  /* APPOINTMENTS LIST */
+  .appt-list { display:flex; flex-direction:column; gap:12px; }
+  .appt-card { background:var(--white); border-radius:var(--r-md); padding:20px; box-shadow:0 2px 12px rgba(0,0,0,.06); display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  .appt-info { flex:1; }
+  .appt-pet { font-family:'DM Serif Display',serif; font-size:16px; color:var(--gray-800); margin-bottom:4px; }
+  .appt-details { font-size:13px; color:var(--gray-600); line-height:1.6; }
+  .appt-status { padding:6px 12px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+  .status-pending { background:var(--coral-50); color:var(--coral-600); }
+  .status-confirmed { background:var(--teal-50); color:var(--teal-600); }
+  .status-completed { background:var(--gray-100); color:var(--gray-600); }
+  .status-cancelled { background:var(--gray-100); color:var(--gray-400); }
+  .btn-cancel { padding:6px 12px; background:transparent; border:1px solid var(--coral-200); color:var(--coral-600); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; margin-top:8px; }
+  .btn-cancel:hover { background:var(--coral-50); }
+  .empty-state { text-align:center; padding:48px 20px; color:var(--gray-400); }
+  .empty-icon { font-size:48px; margin-bottom:12px; }
+  .empty-text { font-size:14px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--gray-800); color:#fff; padding:10px 20px; border-radius:24px; font-size:13px; font-weight:500; opacity:0; transition:all .3s; z-index:9999; pointer-events:none; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* MSG */
+  .msg { font-size:12px; margin-top:12px; padding:10px 14px; border-radius:var(--r-sm); text-align:center; display:none; }
+  .msg.error { background:var(--coral-50); color:var(--coral-600); border:1px solid var(--coral-200); display:block; }
+  .msg.success { background:var(--teal-50); color:var(--teal-600); border:1px solid var(--teal-100); display:block; }
+
+  @media (max-width:600px) {
+    .form-grid { grid-template-columns:1fr; }
+    .header { flex-direction:column; gap:12px; text-align:center; }
+    .appt-card { flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo-icon">🐾</div>
+    <div>
+      <div class="logo-name">The Pet Den</div>
+      <div class="logo-sub">Customer Portal</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="user-email" id="userEmail"></span>
+    <button class="btn-logout" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<div class="main">
+  <h1 class="page-title">Book an Appointment</h1>
+  <p class="page-sub">Schedule a visit for your pet at The Pet Den Veterinary Clinic</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('book')">Book Appointment</div>
+    <div class="tab" onclick="switchTab('appointments')">My Appointments</div>
+  </div>
+
+  <!-- BOOKING SECTION -->
+  <div class="section active" id="bookSection">
+    <div class="card">
+      <div class="card-title">Appointment Details</div>
+      <div class="form-grid">
+        <div class="fg">
+          <label>Pet Name</label>
+          <input id="petName" type="text" placeholder="e.g. Buddy"/>
+        </div>
+        <div class="fg">
+          <label>Pet Type</label>
+          <select id="petType">
+            <option value="">Select type</option>
+            <option value="Dog">Dog</option>
+            <option value="Cat">Cat</option>
+            <option value="Bird">Bird</option>
+            <option value="Rabbit">Rabbit</option>
+            <option value="Hamster">Hamster</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Service</label>
+          <select id="service">
+            <option value="">Select service</option>
+            <option value="Check-up">General Check-up</option>
+            <option value="Vaccination">Vaccination</option>
+            <option value="Grooming">Grooming</option>
+            <option value="Dental">Dental Care</option>
+            <option value="Surgery">Surgery</option>
+            <option value="Emergency">Emergency Care</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Preferred Date</label>
+          <input id="apptDate" type="date"/>
+        </div>
+        <div class="fg">
+          <label>Preferred Time</label>
+          <select id="apptTime">
+            <option value="">Select time</option>
+            <option value="09:00">9:00 AM</option>
+            <option value="09:30">9:30 AM</option>
+            <option value="10:00">10:00 AM</option>
+            <option value="10:30">10:30 AM</option>
+            <option value="11:00">11:00 AM</option>
+            <option value="11:30">11:30 AM</option>
+            <option value="13:00">1:00 PM</option>
+            <option value="13:30">1:30 PM</option>
+            <option value="14:00">2:00 PM</option>
+            <option value="14:30">2:30 PM</option>
+            <option value="15:00">3:00 PM</option>
+            <option value="15:30">3:30 PM</option>
+            <option value="16:00">4:00 PM</option>
+            <option value="16:30">4:30 PM</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Phone Number</label>
+          <input id="phone" type="tel" placeholder="e.g. 09171234567"/>
+        </div>
+        <div class="fg full">
+          <label>Additional Notes</label>
+          <textarea id="notes" placeholder="Any special requirements or concerns..."></textarea>
+        </div>
+      </div>
+      <button class="btn-book" id="bookBtn" onclick="bookAppointment()">Book Appointment</button>
+      <div class="msg" id="bookMsg"></div>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS SECTION -->
+  <div class="section" id="appointmentsSection">
+    <div class="appt-list" id="apptList">
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <div class="empty-text">No appointments yet. Book your first appointment!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAGpevl2iFKjA8EmTntB780prnQVJ4AHSE",
+    authDomain: "pawcare-clinic.firebaseapp.com",
+    projectId: "pawcare-clinic",
+    appId: "1:692804694986:web:39d9218e4251184cb71533"
+  };
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+
+  // ── CHECK AUTH STATE ─────────────────────────────────────────────────────────
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      window.location.replace('customer-login.html');
+      return;
+    }
+    currentUser = user;
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('phone').value = sessionStorage.getItem('petden-customer-phone') || '';
+    // Ensure customerId is in sessionStorage
+    if (!sessionStorage.getItem('petden-customer-id')) {
+      sessionStorage.setItem('petden-customer-id', user.uid);
+    }
+    loadAppointments();
+  });
+
+  // ── UI HELPERS ───────────────────────────────────────────────────────────────
+  function toast(msg) {
+    const e = document.getElementById('toast');
+    e.textContent = msg; e.classList.add('show');
+    setTimeout(() => e.classList.remove('show'), 2800);
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.className = 'msg ' + type;
+  }
+
+  function clearMsg(id) {
+    const el = document.getElementById(id);
+    el.className = 'msg'; el.textContent = '';
+  }
+
+  // ── TABS ─────────────────────────────────────────────────────────────────────
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (tab === 'book' && i === 0) || (tab === 'appointments' && i === 1)));
+    document.getElementById('bookSection').classList.toggle('active', tab === 'book');
+    document.getElementById('appointmentsSection').classList.toggle('active', tab === 'appointments');
+    if (tab === 'appointments') loadAppointments();
+  };
+
+  // ── SET MIN DATE ─────────────────────────────────────────────────────────────
+  const dateInput = document.getElementById('apptDate');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.setAttribute('min', today);
+
+  // ── BOOK APPOINTMENT ─────────────────────────────────────────────────────────
+  window.bookAppointment = async function() {
+    const petName = document.getElementById('petName').value.trim();
+    const petType = document.getElementById('petType').value;
+    const service = document.getElementById('service').value;
+    const date = document.getElementById('apptDate').value;
+    const time = document.getElementById('apptTime').value;
+    const phone = document.getElementById('phone').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const btn = document.getElementById('bookBtn');
+    clearMsg('bookMsg');
+
+    if (!petName || !petType || !service || !date || !time || !phone) {
+      showMsg('bookMsg', 'Please fill in all required fields.', 'error');
+      return;
+    }
+
+    if (!/^09\d{9}$/.test(phone)) {
+      showMsg('bookMsg', 'Please enter a valid PH mobile number (e.g. 09171234567).', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Booking...';
+
+    try {
+      const apptId = 'APPT-' + Date.now();
+      
+      // Convert 24h time to 12h format with AM/PM
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const timeSlot = `${displayHours}:${String(minutes).padStart(2, '0')} ${period}`;
+      
+      // Calculate slot index (0-16 for 17 slots from 9:00 AM to 5:00 PM)
+      const slotIdx = (hours - 9) * 2 + (minutes >= 30 ? 1 : 0);
+      
+      await setDoc(doc(db, 'appointments', apptId), {
+        id: apptId,
+        uid: currentUser.uid,
+        customerId: sessionStorage.getItem('petden-customer-id') || currentUser.uid,
+        customerEmail: currentUser.email,
+        customerName: sessionStorage.getItem('petden-customer-name') || '',
+        petName,
+        petType,
+        service,
+        date,
+        time,
+        phone,
+        notes,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        // Fields for staff dashboard compatibility
+        dateKey: date,
+        timeSlot: timeSlot,
+        slotIdx: slotIdx,
+        ownerName: sessionStorage.getItem('petden-customer-name') || '',
+        animalType: petType,
+        reason: service
+      });
+
+      sessionStorage.setItem('petden-customer-phone', phone);
+      toast('✓ Appointment booked successfully!');
+      
+      // Clear form
+      document.getElementById('petName').value = '';
+      document.getElementById('petType').value = '';
+      document.getElementById('service').value = '';
+      document.getElementById('apptDate').value = '';
+      document.getElementById('apptTime').value = '';
+      document.getElementById('notes').value = '';
+      
+      btn.disabled = false;
+      btn.textContent = 'Book Appointment';
+    } catch (e) {
+      showMsg('bookMsg', 'Failed to book appointment. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Book Appointment';
+    }
+  };
+
+  // ── LOAD APPOINTMENTS ────────────────────────────────────────────────────────
+  async function loadAppointments() {
+    if (!currentUser) return;
+
+    try {
+      const q = query(
+        collection(db, 'appointments'),
+        where('uid', '==', currentUser.uid)
+      );
+      const snapshot = await getDocs(q);
+      const appts = [];
+      snapshot.forEach(doc => appts.push(doc.data()));
+      
+      // Sort by date descending
+      appts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      const listEl = document.getElementById('apptList');
+      
+      if (appts.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <div class="empty-text">No appointments yet. Book your first appointment!</div>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = appts.map(appt => {
+        const statusClass = 'status-' + appt.status;
+        const canCancel = appt.status === 'pending' || appt.status === 'confirmed';
+        const dateObj = new Date(appt.date + 'T' + appt.time);
+        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+        return `
+          <div class="appt-card">
+            <div class="appt-info">
+              <div class="appt-pet">${appt.petName} (${appt.petType})</div>
+              <div class="appt-details">
+                📋 ${appt.service}<br>
+                📅 ${dateStr} at ${timeStr}<br>
+                📞 ${appt.phone}
+                ${appt.notes ? '<br>📝 ' + appt.notes : ''}
+              </div>
+              ${canCancel ? `<button class="btn-cancel" onclick="cancelAppointment('${appt.id}')">Cancel Appointment</button>` : ''}
+            </div>
+            <span class="appt-status ${statusClass}">${appt.status}</span>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('Error loading appointments:', e);
+    }
+  }
+
+  // ── CANCEL APPOINTMENT ───────────────────────────────────────────────────────
+  window.cancelAppointment = async function(apptId) {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return;
+
+    try {
+      await updateDoc(doc(db, 'appointments', apptId), {
+        status: 'cancelled'
+      });
+      toast('✓ Appointment cancelled.');
+      loadAppointments();
+    } catch (e) {
+      toast('Error cancelling appointment.');
+    }
+  };
+
+  // ── LOGOUT ───────────────────────────────────────────────────────────────────
+  window.doLogout = async function() {
+    try {
+      await signOut(auth);
+      sessionStorage.removeItem('petden-customer-uid');
+      sessionStorage.removeItem('petden-customer-email');
+      sessionStorage.removeItem('petden-customer-name');
+      sessionStorage.removeItem('petden-customer-phone');
+      window.location.replace('customer-login.html');
+    } catch (e) {
+      toast('Error logging out.');
+    }
+  };
+
+  // ── ENTER KEY SUPPORT ────────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('bookSection').classList.contains('active')) {
+      window.bookAppointment();
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1d9e75">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>The Pet Den — Login</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-50: #e1f5ee; --teal-100: #9fe1cb; --teal-200: #5dcaa5;
+    --teal-400: #1d9e75; --teal-600: #0f6e56;
+    --gray-50: #f7f9f8; --gray-100: #e8edea; --gray-200: #cdd5d0;
+    --gray-400: #8a9990; --gray-600: #4f6058; --gray-800: #2a3830;
+    --coral-50: #faece7; --coral-200: #f0997b; --coral-600: #993c1d;
+    --white: #ffffff;
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.12);
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px;
+  }
+  body { font-family:'DM Sans',sans-serif; background:#f0f6f3; color:var(--gray-800); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+
+  .logo-wrap { text-align:center; margin-bottom:36px; }
+  .logo-icon { width:72px; height:72px; background:var(--teal-400); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 14px; box-shadow:0 8px 24px rgba(29,158,117,.3); }
+  .logo-name { font-family:'DM Serif Display',serif; font-size:30px; color:var(--teal-600); }
+  .logo-sub { font-size:12px; color:var(--gray-400); letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:540px; }
+  .card { background:var(--white); border-radius:var(--r-lg); padding:28px 24px; box-shadow:var(--shadow-lg); border:2px solid transparent; transition:all .2s; }
+  .card:hover { border-color:var(--teal-200); transform:translateY(-3px); }
+  .card-icon { font-size:32px; margin-bottom:14px; }
+  .card-title { font-family:'DM Serif Display',serif; font-size:19px; color:var(--gray-800); margin-bottom:8px; }
+  .card-desc { font-size:12px; color:var(--gray-400); line-height:1.7; margin-bottom:20px; }
+  .card-btn { width:100%; padding:11px; border:none; border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s; }
+  .card-btn.staff { background:var(--teal-400); color:#fff; }
+  .card-btn.staff:hover { background:var(--teal-600); }
+  .card-btn.customer { background:var(--teal-50); color:var(--teal-600); border:1.5px solid var(--teal-200); }
+  .card-btn.customer:hover { background:var(--teal-100); }
+
+  .overlay { position:fixed; inset:0; background:rgba(10,28,22,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:999; opacity:0; pointer-events:none; transition:opacity .2s; padding:20px; }
+  .overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--white); border-radius:var(--r-lg); padding:32px; width:380px; max-width:100%; box-shadow:var(--shadow-lg); transform:translateY(12px) scale(.98); transition:transform .2s; }
+  .overlay.open .modal { transform:translateY(0) scale(1); }
+  .m-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .m-title { font-family:'DM Serif Display',serif; font-size:22px; color:var(--gray-800); }
+  .m-x { width:30px; height:30px; border-radius:8px; border:1px solid var(--gray-200); background:transparent; cursor:pointer; color:var(--gray-400); font-size:16px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .m-x:hover { background:var(--gray-50); color:var(--gray-800); }
+  .fg { margin-bottom:16px; }
+  label { display:block; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--gray-600); margin-bottom:6px; }
+  input { width:100%; padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--gray-800); background:var(--white); outline:none; transition:border-color .15s; }
+  input:focus { border-color:var(--teal-400); }
+  .btn-login { width:100%; padding:12px; background:var(--teal-400); color:#fff; border:none; border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background .15s; margin-top:8px; }
+  .btn-login:hover { background:var(--teal-600); }
+  .btn-login:disabled { background:var(--gray-200); cursor:not-allowed; }
+  .login-error { font-size:12px; color:var(--coral-600); margin-top:10px; text-align:center; display:none; padding:8px; background:var(--coral-50); border-radius:var(--r-sm); border:1px solid var(--coral-200); }
+  .login-error.show { display:block; }
+  .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--gray-800); color:#fff; padding:10px 20px; border-radius:24px; font-size:13px; font-weight:500; opacity:0; transition:all .3s; z-index:9999; pointer-events:none; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <div class="logo-icon">🐾</div>
+  <div class="logo-name">The Pet Den</div>
+  <div class="logo-sub">Veterinary Clinic</div>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-icon">👨‍⚕️</div>
+    <div class="card-title">Staff Login</div>
+    <div class="card-desc">Access the full appointment management dashboard. Book, view, and cancel all appointments.</div>
+    <button class="card-btn staff" onclick="openLogin()">Login as Staff</button>
+  </div>
+  <div class="card">
+    <div class="card-icon">🐶</div>
+    <div class="card-title">Book Appointment</div>
+    <div class="card-desc">Schedule a visit for your pet. View and manage your own appointments easily.</div>
+    <button class="card-btn customer" onclick="window.location.href='customer-login.html'">Book as Customer</button>
+  </div>
+</div>
+
+<!-- STAFF LOGIN MODAL -->
+<div class="overlay" id="loginModal">
+  <div class="modal">
+    <div class="m-head">
+      <div class="m-title">Staff Login</div>
+      <button class="m-x" onclick="closeLogin()">✕</button>
+    </div>
+    <div class="fg">
+      <label>Username</label>
+      <input id="lUser" type="text" placeholder="Enter username" autocomplete="off"/>
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input id="lPass" type="password" placeholder="Enter password"/>
+    </div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">Login</button>
+    <div class="login-error" id="loginError">Incorrect username or password.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STAFF_USERNAME = 'admin';
+  const STAFF_PASSWORD = 'petden2026';
+
+  function toast(msg) {
+    const e = document.getElementById('toast');
+    e.textContent = msg; e.classList.add('show');
+    setTimeout(() => e.classList.remove('show'), 2800);
+  }
+  function openLogin() {
+    document.getElementById('loginModal').classList.add('open');
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('lUser').value = '';
+    document.getElementById('lPass').value = '';
+    setTimeout(() => document.getElementById('lUser').focus(), 200);
+  }
+  function closeLogin() {
+    document.getElementById('loginModal').classList.remove('open');
+  }
+  function doLogin() {
+    const user = document.getElementById('lUser').value.trim();
+    const pass = document.getElementById('lPass').value;
+    const errEl = document.getElementById('loginError');
+    const btn   = document.getElementById('loginBtn');
+    if (!user || !pass) {
+      errEl.textContent = 'Please enter username and password.';
+      errEl.classList.add('show'); return;
+    }
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    errEl.classList.remove('show');
+    setTimeout(() => {
+      if (user === STAFF_USERNAME && pass === STAFF_PASSWORD) {
+        sessionStorage.setItem('petden-staff', '1');
+        sessionStorage.setItem('petden-user', user);
+        toast('✓ Welcome back, ' + user + '!');
+        setTimeout(() => window.location.href = 'staff.html', 800);
+      } else {
+        errEl.textContent = 'Incorrect username or password.';
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    }, 600);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLogin();
+    if (e.key === 'Enter' && document.getElementById('loginModal').classList.contains('open')) doLogin();
+  });
+  document.getElementById('loginModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('loginModal')) closeLogin();
+  });
+  if (sessionStorage.getItem('petden-staff') === '1') {
+    window.location.href = 'staff.html';
+  }
+</script>
+</body>
+</html>

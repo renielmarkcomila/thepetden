@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1d9e75">
+<title>The Pet Den — Customer Login</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-50: #e1f5ee; --teal-100: #9fe1cb; --teal-200: #5dcaa5;
+    --teal-400: #1d9e75; --teal-600: #0f6e56;
+    --gray-50: #f7f9f8; --gray-100: #e8edea; --gray-200: #cdd5d0;
+    --gray-400: #8a9990; --gray-600: #4f6058; --gray-800: #2a3830;
+    --coral-50: #faece7; --coral-200: #f0997b; --coral-600: #993c1d;
+    --white: #ffffff;
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.12);
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px;
+  }
+  body { font-family:'DM Sans',sans-serif; background:#f0f6f3; color:var(--gray-800); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+
+  .logo-wrap { text-align:center; margin-bottom:28px; }
+  .logo-icon { width:60px; height:60px; background:var(--teal-400); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px; box-shadow:0 8px 24px rgba(29,158,117,.3); }
+  .logo-name { font-family:'DM Serif Display',serif; font-size:24px; color:var(--teal-600); }
+  .logo-sub { font-size:11px; color:var(--gray-400); letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
+
+  .card { background:var(--white); border-radius:var(--r-lg); padding:32px; width:100%; max-width:400px; box-shadow:var(--shadow-lg); }
+
+  /* TABS */
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:0; margin-bottom:28px; background:var(--gray-50); border-radius:var(--r-md); padding:4px; }
+  .tab { padding:8px; text-align:center; font-size:13px; font-weight:600; color:var(--gray-400); cursor:pointer; border-radius:8px; transition:all .2s; }
+  .tab.active { background:var(--white); color:var(--teal-600); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+
+  .form-section { display:none; }
+  .form-section.active { display:block; }
+
+  .fg { margin-bottom:14px; }
+  label { display:block; font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--gray-600); margin-bottom:6px; }
+  input { width:100%; padding:11px 14px; border:1.5px solid var(--gray-200); border-radius:var(--r-sm); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--gray-800); background:var(--white); outline:none; transition:border-color .15s; }
+  input:focus { border-color:var(--teal-400); }
+  .input-hint { font-size:11px; color:var(--gray-400); margin-top:4px; }
+
+  .btn-submit { width:100%; padding:12px; background:var(--teal-400); color:#fff; border:none; border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background .15s; margin-top:6px; }
+  .btn-submit:hover { background:var(--teal-600); }
+  .btn-submit:disabled { background:var(--gray-200); cursor:not-allowed; }
+
+  .msg { font-size:12px; margin-top:12px; padding:10px 14px; border-radius:var(--r-sm); text-align:center; display:none; }
+  .msg.error { background:var(--coral-50); color:var(--coral-600); border:1px solid var(--coral-200); display:block; }
+  .msg.success { background:var(--teal-50); color:var(--teal-600); border:1px solid var(--teal-100); display:block; }
+
+  .back-link { text-align:center; margin-top:16px; font-size:12px; color:var(--gray-400); }
+  .back-link a { color:var(--teal-600); font-weight:600; text-decoration:none; }
+  .back-link a:hover { text-decoration:underline; }
+
+  /* VERIFY SCREEN */
+  #verifyScreen { display:none; text-align:center; }
+  #verifyScreen.show { display:block; }
+  .verify-icon { font-size:48px; margin-bottom:16px; }
+  .verify-title { font-family:'DM Serif Display',serif; font-size:22px; color:var(--gray-800); margin-bottom:8px; }
+  .verify-sub { font-size:13px; color:var(--gray-400); line-height:1.7; margin-bottom:24px; }
+  .verify-email { font-weight:600; color:var(--teal-600); }
+  .btn-resend { padding:10px 24px; background:transparent; border:1.5px solid var(--teal-200); color:var(--teal-600); border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; margin-right:8px; transition:all .15s; }
+  .btn-resend:hover { background:var(--teal-50); }
+  .btn-check { padding:10px 24px; background:var(--teal-400); color:#fff; border:none; border-radius:var(--r-md); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:background .15s; }
+  .btn-check:hover { background:var(--teal-600); }
+
+  .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--gray-800); color:#fff; padding:10px 20px; border-radius:24px; font-size:13px; font-weight:500; opacity:0; transition:all .3s; z-index:9999; pointer-events:none; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <div class="logo-icon">🐾</div>
+  <div class="logo-name">The Pet Den</div>
+  <div class="logo-sub">Customer Portal</div>
+</div>
+
+<div class="card">
+  <!-- TABS -->
+  <div class="tabs" id="authTabs">
+    <div class="tab active" onclick="switchTab('login')">Login</div>
+    <div class="tab" onclick="switchTab('register')">Register</div>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div class="form-section active" id="loginSection">
+    <div class="fg">
+      <label>Email Address</label>
+      <input id="lEmail" type="email" placeholder="your@email.com"/>
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input id="lPassword" type="password" placeholder="Enter your password"/>
+    </div>
+    <button class="btn-submit" id="loginBtn" onclick="doLogin()">Login</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <!-- REGISTER FORM -->
+  <div class="form-section" id="registerSection">
+    <div class="fg">
+      <label>Full Name</label>
+      <input id="rName" type="text" placeholder="e.g. Maria Santos"/>
+    </div>
+    <div class="fg">
+      <label>Email Address</label>
+      <input id="rEmail" type="email" placeholder="your@email.com"/>
+    </div>
+    <div class="fg">
+      <label>Phone Number</label>
+      <input id="rPhone" type="tel" placeholder="e.g. 09171234567"/>
+      <div class="input-hint">Philippine mobile number</div>
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input id="rPassword" type="password" placeholder="At least 6 characters"/>
+    </div>
+    <div class="fg">
+      <label>Confirm Password</label>
+      <input id="rConfirm" type="password" placeholder="Re-enter your password"/>
+    </div>
+    <button class="btn-submit" id="registerBtn" onclick="doRegister()">Create Account</button>
+    <div class="msg" id="registerMsg"></div>
+  </div>
+
+  <!-- EMAIL VERIFICATION SCREEN -->
+  <div id="verifyScreen">
+    <div class="verify-icon">📧</div>
+    <div class="verify-title">Verify your email</div>
+    <div class="verify-sub">
+      A verification link has been sent to<br>
+      <span class="verify-email" id="verifyEmailLabel"></span><br><br>
+      Please check your inbox and click the link to activate your account.
+    </div>
+    <button class="btn-resend" onclick="resendVerification()">Resend Email</button>
+    <button class="btn-check" onclick="checkVerification()">I've verified →</button>
+    <div class="msg" id="verifyMsg"></div>
+  </div>
+</div>
+
+<div class="back-link">
+  <a href="index.html">← Back to Home</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendEmailVerification, onAuthStateChanged, reload
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAGpevl2iFKjA8EmTntB780prnQVJ4AHSE",
+    authDomain: "pawcare-clinic.firebaseapp.com",
+    projectId: "pawcare-clinic",
+    appId: "1:692804694986:web:39d9218e4251184cb71533"
+  };
+
+  const app  = initializeApp(FIREBASE_CONFIG);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  let currentUser = null;
+
+  // ── UI HELPERS ───────────────────────────────────────────────────────────────
+  function toast(msg) {
+    const e=document.getElementById('toast');
+    e.textContent=msg; e.classList.add('show');
+    setTimeout(()=>e.classList.remove('show'),2800);
+  }
+  function showMsg(id, msg, type) {
+    const el=document.getElementById(id);
+    el.textContent=msg; el.className='msg '+type;
+  }
+  function clearMsg(id) {
+    const el=document.getElementById(id);
+    el.className='msg'; el.textContent='';
+  }
+
+  // ── TABS ─────────────────────────────────────────────────────────────────────
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+    document.getElementById('loginSection').classList.toggle('active', tab==='login');
+    document.getElementById('registerSection').classList.toggle('active', tab==='register');
+    clearMsg('loginMsg'); clearMsg('registerMsg');
+  };
+
+  // ── CHECK AUTH STATE ─────────────────────────────────────────────────────────
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      // Already logged in → go to booking page
+      sessionStorage.setItem('petden-customer-uid', user.uid);
+      sessionStorage.setItem('petden-customer-email', user.email);
+      window.location.replace('customer.html');
+    }
+  });
+
+  // ── LOGIN ────────────────────────────────────────────────────────────────────
+  window.doLogin = async function() {
+    const email = document.getElementById('lEmail').value.trim();
+    const pass  = document.getElementById('lPassword').value;
+    const btn   = document.getElementById('loginBtn');
+    clearMsg('loginMsg');
+
+    if (!email || !pass) { showMsg('loginMsg','Please fill in all fields.','error'); return; }
+
+    btn.disabled=true; btn.textContent='Logging in…';
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, pass);
+      sessionStorage.setItem('petden-customer-uid', cred.user.uid);
+      sessionStorage.setItem('petden-customer-email', cred.user.email);
+      
+      // Fetch customer data from Firestore
+      const customerDoc = await getDoc(doc(db, 'customers', cred.user.uid));
+      if (customerDoc.exists()) {
+        const customerData = customerDoc.data();
+        sessionStorage.setItem('petden-customer-name', customerData.fullName || '');
+        sessionStorage.setItem('petden-customer-phone', customerData.phone || '');
+        sessionStorage.setItem('petden-customer-id', customerData.customerId || cred.user.uid);
+      }
+      
+      toast('✓ Welcome back!');
+      setTimeout(()=>window.location.replace('customer.html'), 800);
+    } catch(e) {
+      let msg = 'Incorrect email or password.';
+      if (e.code==='auth/user-not-found') msg='No account found with this email.';
+      if (e.code==='auth/wrong-password') msg='Incorrect password.';
+      if (e.code==='auth/too-many-requests') msg='Too many attempts. Try again later.';
+      showMsg('loginMsg', msg, 'error');
+      btn.disabled=false; btn.textContent='Login';
+    }
+  };
+
+  // ── REGISTER ─────────────────────────────────────────────────────────────────
+  window.doRegister = async function() {
+    const name    = document.getElementById('rName').value.trim();
+    const email   = document.getElementById('rEmail').value.trim();
+    const phone   = document.getElementById('rPhone').value.trim();
+    const pass    = document.getElementById('rPassword').value;
+    const confirm = document.getElementById('rConfirm').value;
+    const btn     = document.getElementById('registerBtn');
+    clearMsg('registerMsg');
+
+    if (!name||!email||!phone||!pass||!confirm) { showMsg('registerMsg','Please fill in all fields.','error'); return; }
+    if (pass.length < 6) { showMsg('registerMsg','Password must be at least 6 characters.','error'); return; }
+    if (pass !== confirm) { showMsg('registerMsg','Passwords do not match.','error'); return; }
+    if (!/^09\d{9}$/.test(phone)) { showMsg('registerMsg','Please enter a valid PH mobile number (e.g. 09171234567).','error'); return; }
+
+    btn.disabled=true; btn.textContent='Creating account…';
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      // Save extra info to Firestore
+      await setDoc(doc(db,'customers',cred.user.uid), {
+        uid: cred.user.uid,
+        customerId: cred.user.uid,
+        fullName: name,
+        email: email,
+        phone: phone,
+        createdAt: new Date().toISOString()
+      });
+      sessionStorage.setItem('petden-customer-uid', cred.user.uid);
+      sessionStorage.setItem('petden-customer-email', cred.user.email);
+      sessionStorage.setItem('petden-customer-name', name);
+      sessionStorage.setItem('petden-customer-phone', phone);
+      sessionStorage.setItem('petden-customer-id', cred.user.uid);
+      toast('✓ Account created! Welcome to The Pet Den!');
+      setTimeout(()=>window.location.replace('customer.html'), 800);
+      btn.disabled=false; btn.textContent='Create Account';
+    } catch(e) {
+      let msg = 'Registration failed. Please try again.';
+      if (e.code==='auth/email-already-in-use') msg='This email is already registered. Please login.';
+      if (e.code==='auth/invalid-email') msg='Please enter a valid email address.';
+      showMsg('registerMsg', msg, 'error');
+      btn.disabled=false; btn.textContent='Create Account';
+    }
+  };
+
+  // ── VERIFY SCREEN ────────────────────────────────────────────────────────────
+  function showVerifyScreen(email) {
+    document.getElementById('authTabs').style.display='none';
+    document.getElementById('loginSection').classList.remove('active');
+    document.getElementById('registerSection').classList.remove('active');
+    document.getElementById('verifyScreen').classList.add('show');
+    document.getElementById('verifyEmailLabel').textContent=email;
+  }
+
+  window.resendVerification = async function() {
+    if (!currentUser) { toast('Please login first.'); return; }
+    try {
+      await sendEmailVerification(currentUser);
+      toast('✓ Verification email resent!');
+    } catch(e) { toast('Error sending email. Try again.'); }
+  };
+
+  window.checkVerification = async function() {
+    if (!currentUser) { toast('Please login again.'); return; }
+    try {
+      await reload(currentUser);
+      if (currentUser.emailVerified) {
+        sessionStorage.setItem('petden-customer-uid', currentUser.uid);
+        sessionStorage.setItem('petden-customer-email', currentUser.email);
+        toast('✓ Email verified! Redirecting…');
+        setTimeout(()=>window.location.replace('customer.html'), 800);
+      } else {
+        showMsg('verifyMsg','Email not verified yet. Please check your inbox.','error');
+      }
+    } catch(e) { toast('Error checking verification.'); }
+  };
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key==='Enter') {
+      if (document.getElementById('loginSection').classList.contains('active')) window.doLogin();
+      else if (document.getElementById('registerSection').classList.contains('active')) window.doRegister();
+    }
+  });
+</script>
+</body>
+</html>
