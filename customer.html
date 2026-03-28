@@ -178,6 +178,10 @@
           </select>
         </div>
         <div class="fg">
+          <label>Owner Name</label>
+          <input id="ownerName" type="text" placeholder="e.g. Juan Dela Cruz"/>
+        </div>
+        <div class="fg">
           <label>Phone Number</label>
           <input id="phone" type="tel" placeholder="e.g. 09171234567"/>
         </div>
@@ -230,6 +234,7 @@
     }
     currentUser = user;
     document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('ownerName').value = sessionStorage.getItem('petden-customer-name') || '';
     document.getElementById('phone').value = sessionStorage.getItem('petden-customer-phone') || '';
     // Ensure customerId is in sessionStorage
     if (!sessionStorage.getItem('petden-customer-id')) {
@@ -275,12 +280,13 @@
     const service = document.getElementById('service').value;
     const date = document.getElementById('apptDate').value;
     const time = document.getElementById('apptTime').value;
+    const ownerName = document.getElementById('ownerName').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const notes = document.getElementById('notes').value.trim();
     const btn = document.getElementById('bookBtn');
     clearMsg('bookMsg');
 
-    if (!petName || !petType || !service || !date || !time || !phone) {
+    if (!petName || !petType || !service || !date || !time || !ownerName || !phone) {
       showMsg('bookMsg', 'Please fill in all required fields.', 'error');
       return;
     }
@@ -310,7 +316,7 @@
         uid: currentUser.uid,
         customerId: sessionStorage.getItem('petden-customer-id') || currentUser.uid,
         customerEmail: currentUser.email,
-        customerName: sessionStorage.getItem('petden-customer-name') || '',
+        customerName: ownerName,
         petName,
         petType,
         service,
@@ -324,11 +330,12 @@
         dateKey: date,
         timeSlot: timeSlot,
         slotIdx: slotIdx,
-        ownerName: sessionStorage.getItem('petden-customer-name') || '',
+        ownerName: ownerName,
         animalType: petType,
         reason: service
       });
 
+      sessionStorage.setItem('petden-customer-name', ownerName);
       sessionStorage.setItem('petden-customer-phone', phone);
       toast('✓ Appointment booked successfully!');
       
@@ -338,6 +345,7 @@
       document.getElementById('service').value = '';
       document.getElementById('apptDate').value = '';
       document.getElementById('apptTime').value = '';
+      document.getElementById('ownerName').value = '';
       document.getElementById('notes').value = '';
       
       btn.disabled = false;
